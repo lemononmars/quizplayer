@@ -51,13 +51,13 @@
 	}
 </script>
 
-<div class="flex flex-col gap-2 pb-20">
+<div class="flex flex-col gap-2 pb-10">
    <h1>{content.title}</h1>
    <div class="flex flex-row items-center gap-2 mx-auto">
       <p>วันที่ {content.date}</p>
       {#if content.tags}
          {#each content.tags as t}
-            <a href="/puzzle?tag={t}"><div class="badge badge-outline">{t}</div></a>
+            <a href="/puzzles/rebus?tag={t}"><div class="badge badge-outline">{t}</div></a>
          {/each}
       {/if}
    </div>
@@ -98,7 +98,7 @@
          {#if numHints < content.hints.length}
             <div class="btn btn-outline" on:click={revealHint}>เปิดคำใบ้ที่ {numHints + 1}</div>
          {:else}
-            <div class="btn btn-warning" on:click={()=>showAnswer = true}>เฉลย</div>
+            <div class="btn btn-warning" on:click={()=>{showAnswer = true; scrollBottom()}}>เฉลย</div>
             {#if showAnswer}
                <p>{content.answer}</p>
             {/if}

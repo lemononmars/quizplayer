@@ -5,13 +5,13 @@
 	import PageNavIndicator from '$lib/components/PageNavIndicator.svelte';
 </script>
 
-<header class="w-screen fixed overflow-x-hidden z-20">
+<header class="w-screen fixed overflow-x-clip z-20">
 	{#if $navigating}
 		<PageNavIndicator />
 	{/if}
 	<Navbar/>
 </header>
 
-<main class="w-screen overflow-x-hidden pt-20">
+<main class="w-screen overflow-x-clip pt-20">
    <slot />
 </main>

@@ -7,7 +7,7 @@
    const imgUrl = new URL(`/src/lib/images/${url}/${content.image}`, import.meta.url).href
 </script>
 
-<a href="./{url}/{content.id}">
+<a href="/{url}/{content.id}">
 <div class="flex flex-row gap-2 border-2">
    <div>
       <img src="{imgUrl}" class="w-32 aspect-square object-cover" alt="img">

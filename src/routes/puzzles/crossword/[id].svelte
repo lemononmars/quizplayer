@@ -11,6 +11,9 @@
    export let content: IPuzzleCrossword
    let clues: Clue[] = content.clues
 
+   const sizeStr = content.size[0] >= 6 ? 'w-10 h-10' : 'w-20 h-20'
+   const letterSize = content.size[0] >= 6 ? 'text-md' : 'text-2xl'
+
    // add indices to the clues by sorting it from top-left to bottom-right
    let sortedPositions = content.clues.map((c, idx) => [idx, c.position[0], c.position[1]])
       .sort((a,b)=>{
@@ -248,28 +251,30 @@
 </div>
 
 <div class="flex flex-col lg:flex-row mt-10">
-   <div class="text-center w-full lg:w-1/2 mx-auto">
+   <div class="text-center w-full lg:w-1/2 ">
       <div class="flex flex-col">
          {#each grid as rows, ridx}
-            <div class="flex flex-row">
+            <div class="flex flex-row mx-auto">
                {#each rows as _, cidx}
                   {#if grid[cidx][ridx].solution === ''}
-                     <div class="w-20 h-20 border-2 bg-base-content"></div>
+                     <div class="{sizeStr} border-2 bg-base-content"></div>
                   {:else}
-                     <div class="relative w-20 h-20" on:click={()=>selectPosition([cidx, ridx])}>
+                     <div class="relative {sizeStr}" on:click={()=>selectPosition([cidx, ridx])}>
                         <div 
                            class="w-full h-full border-2 text-center grid place-content-center"
                            class:bg-success={grid[cidx][ridx]?.locked}
                            bind:this={gridElem[cidx][ridx]}
                         >
                            <p 
-                              class="text-base-content text-4xl bold-"
+                              class="text-base-content {letterSize}"
                               class:font-bold={grid[cidx][ridx]?.locked}
                               >{grid[cidx][ridx].input}</p
                            >
                         </div>
                         {#if grid[cidx][ridx].mark}
-                           <div class="absolute top-0 left-0 pl-2 z-10">{grid[cidx][ridx].mark}</div>
+                           <div class="absolute top-0 left-0 pl-2 z-10">
+                              <p class="{letterSize}">{grid[cidx][ridx].mark}</p>
+                           </div>
                         {/if}
                      </div>
                   {/if}

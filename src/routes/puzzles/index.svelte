@@ -9,7 +9,7 @@
 </svelte:head>
 
 {#each keys as key}
-   <a href="/puzzle/{key}">
+   <a href="/puzzles/{key}">
       <h2 class="text-3xl m-4 capitalize">{key}</h2>
    </a>
    <div class="grid lg:grid-cols-2 px-2 gap-2" >

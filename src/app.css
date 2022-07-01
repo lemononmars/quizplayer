@@ -1,3 +1,40 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+/* purge start ignore */
+@layer base {
+	html {
+		@apply scroll-pt-24;
+	}
+
+	body {
+		@apply leading-normal tracking-normal text-base font-normal break-words ;
+		@apply font-sans text-base lg:text-xl;
+	}
+
+	main {
+		@apply pt-24 max-w-4xl mx-auto;
+		@apply text-center;
+	}
+
+	a {
+		@apply link link-primary;
+		@apply no-underline hover:no-underline focus:outline-none focus:underline;
+	}
+
+	h1 {
+		@apply text-2xl text-primary mt-4;
+	}
+
+	h2 {
+		@apply text-xl font-semibold text-secondary mt-2;
+	}
+
+	h3 {
+		@apply text-base font-semibold text-accent mt-2;
+	}
+}
+
+/* purge end ignore */

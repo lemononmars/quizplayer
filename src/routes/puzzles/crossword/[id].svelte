@@ -1,0 +1,318 @@
+<script lang=ts>
+   import type { IPuzzleCrossword, CrosswordClue } from "$lib/interfaces";
+   import {splitWord, isLegal, appendable} from "./utils"
+   import {onMount} from 'svelte'
+
+   interface Clue extends CrosswordClue {
+      index?: number,
+      solved?: boolean
+   }
+
+   export let content: IPuzzleCrossword
+   let clues: Clue[] = content.clues
+
+   // add indices to the clues by sorting it from top-left to bottom-right
+   let sortedPositions = content.clues.map((c, idx) => [idx, c.position[0], c.position[1]])
+      .sort((a,b)=>{
+         if(a[2] - b[2] != 0) return a[2] - b[2]
+         return a[1] - b[1]
+      })
+
+   let gridIndex = 1
+   for(let i = 0; i < sortedPositions.length; i ++) { 
+      if(i > 0)
+         if((sortedPositions[i-1][2] != sortedPositions[i][2]) || (sortedPositions[i-1][1] != sortedPositions[i][1])) {
+            gridIndex ++
+         }
+      clues[sortedPositions[i][0]].index = gridIndex
+   }
+
+   clues = clues.sort((a,b)=> {
+      if(a.direction === b.direction)
+         return a.index - b.index 
+      else if(a.direction === 'down')
+         return -1
+      else
+         return 1
+   })
+
+   let solvedClues: boolean[] = clues.map(_=> false)
+   $: solved = solvedClues.every(c => c)
+   let openModal: boolean = false
+   $: if(solved) {
+      gridElem[activeCell[0]][activeCell[1]].classList.remove('border-primary-content', 'animate-pulse')
+      openModal = true
+   }
+
+   type Cell = [number, number]
+   type Direction = 'down' | 'across'
+
+   let activeCell: Cell = [0,0]
+   let activeClue: Clue = clues[0]
+   const gridWidth = content.size[0]
+   const gridHeight = content.size[1]
+
+   onMount(async()=>{
+      toggle(activeClue)
+      selectPosition(activeClue.position)
+   })
+
+   let grid = Array(gridHeight).fill('')
+      .map(_ => (Array(gridWidth).fill('')
+         .map(_ =>({
+            input: '',
+            solution: '',
+            mark: '',
+            down: -1,
+            across: -1,
+            locked: false
+         }))
+      ))
+
+   let gridElem = Array(gridHeight).fill('')
+      .map(_ => (Array(gridWidth).fill('')
+         .map(_ => null)
+      ))
+
+   // Tranpose the matrix
+   clues.forEach(c => {
+      const downMult = c.direction === 'down' ? 1 : 0
+      const acrossMult = 1 - downMult 
+      splitWord(c.answer).forEach((letter, idx) => {
+         grid[c.position[0] + idx * acrossMult][c.position[1] + idx * downMult].solution = letter
+         c.direction === 'down' ? 
+            grid[c.position[0]][c.position[1] + idx].down = c.index
+            : grid[c.position[0] + idx][c.position[1]].across = c.index
+      })
+   })
+
+   clues.forEach(c => 
+      grid[c.position[0]][c.position[1]].mark = '' + c.index
+   )
+
+   // end initiation
+
+   function selectClue(c: Clue){
+      toggleHighlight(c)
+      activeClue = c
+      changeActiveCell(c.position)
+   }
+
+   function toggleHighlight(c: Clue) {
+      toggle(activeClue)
+      toggle(c)
+   }
+
+   function toggle(c: Clue) {
+      const downMult = c.direction === 'down' ? 1 : 0
+      const acrossMult = 1 - downMult
+      splitWord(c.answer).forEach((_, idx) =>{
+         if(!grid[c.position[0] + idx * acrossMult][c.position[1] + idx * downMult].locked)
+            gridElem[c.position[0] + idx * acrossMult][c.position[1] + idx * downMult].classList.toggle('bg-info')
+      })
+   }
+
+   function selectPosition(position: Cell) {
+      const {down, across} = grid[position[0]][position[1]]
+      let newClue
+      let findDown: boolean = (activeClue.direction === 'across') // bias toward a different direction
+
+      if(down > -1)
+         findDown = true
+      else
+         findDown = false
+
+      // special case: when user clicks on the same cell twice, we assume they want to change the direction
+      if(position[0] == activeCell[0] && position[1] == activeCell[1] && down > -1 && across > -1)
+         findDown = (activeClue.direction === 'across')
+
+      newClue = findDown ? clues.filter(c=>c.direction === 'down' && c.index == down)[0] 
+         : clues.filter(c=>c.direction === 'across' && c.index == across)[0]
+
+      toggleHighlight(newClue)
+      activeClue = newClue
+      changeActiveCell(position)
+   }
+
+   function nextCell() {
+      if(activeClue.direction === 'down') 
+         if(activeCell[1] < gridHeight -1 && grid[activeCell[0]][activeCell[1]+1].solution !== '')
+            changeActiveCell([activeCell[0], activeCell[1] + 1])
+         else
+            nextClue()
+      else 
+         if(activeCell[0] < gridWidth -1 && grid[activeCell[0]+1][activeCell[1]].solution !== '')
+            changeActiveCell([activeCell[0] + 1, activeCell[1]])
+         else
+            nextClue()
+   }
+
+   function moveTo(x: number,y: number) {
+      if(activeCell[1] + y < gridHeight && activeCell[1] + y >= 0 
+         && activeCell[0] + x < gridWidth && activeCell[0] + x >= 0 
+         && grid[activeCell[0] + x][activeCell[1] + y].solution !== '')
+         selectPosition([activeCell[0] + x, activeCell[1] + y])
+      // if it fails, do nothing
+   }
+
+   function nextClue() {
+      const nextActiveClue = clues[(getClueIndex(activeClue) + 1) % clues.length]
+      selectClue(nextActiveClue)
+   }
+
+   function getClueIndex(c: Clue) {
+      for(let i = 0; i < clues.length; i ++)
+         if(c.index == clues[i].index && c.direction === clues[i].direction)
+            return i
+      // should never happen, but just in case
+      return 0
+   }
+
+   function getClue(dir: Direction, index: number) {
+      for(let i = 0; i < clues.length; i ++)
+         if(clues[i].direction === dir && clues[i].index === index)
+            return clues[i]
+      return null
+   }
+
+   function handleKeyPress(event: KeyboardEvent) {
+      // navigation
+      if(event.code === "Space")
+		   nextCell()
+      else if(event.code === "Tab")
+         nextClue()
+      else if(event.code === 'ArrowDown')
+         moveTo(0,1)
+      else if (event.code === 'ArrowUp')
+         moveTo(0,-1)
+      else if (event.code === 'ArrowRight')
+         moveTo(1,0)
+      else if (event.code === 'ArrowLeft')
+         moveTo(-1,0)
+      else if(grid[activeCell[0]][activeCell[1]].locked)
+         return 
+      
+      // modifying cells
+      if(appendable(grid[activeCell[0]][activeCell[1]].input, event.key))
+         grid[activeCell[0]][activeCell[1]].input += event.key
+      else if(isLegal(event.key)) {
+         grid[activeCell[0]][activeCell[1]].input = event.key
+      }
+      else if(event.code === 'Backspace')
+         grid[activeCell[0]][activeCell[1]].input = ''
+
+      checkAnswer(activeCell)
+   }
+
+   function changeActiveCell(position: Cell){
+      gridElem[activeCell[0]][activeCell[1]].classList.remove('border-primary-content', 'animate-pulse')
+      activeCell = [position[0], position[1]]
+      gridElem[activeCell[0]][activeCell[1]].classList.add('border-primary-content', 'animate-pulse')
+   }
+
+   function checkAnswer(position: Cell){
+      const {down, across} = grid[position[0]][position[1]]
+      if(down > -1)
+         checkAnswerClue(getClue('down', down))
+      if(across > -1)
+         checkAnswerClue(getClue('across', across))
+   }
+
+   function checkAnswerClue(c: Clue | null) {
+      if(!c) return
+      let match = true
+      const downMult = c.direction === 'down' ? 1 : 0
+      const acrossMult = 1 - downMult
+      splitWord(c.answer).forEach((letter, idx) =>{
+         match = match && (grid[c.position[0] + idx * acrossMult][c.position[1] + idx * downMult].input === letter)
+      })
+      if(match) {
+         solvedClues[getClueIndex(c)] = true
+         splitWord(c.answer).forEach((_, idx) =>{
+            grid[c.position[0] + idx * acrossMult][c.position[1] + idx * downMult].locked = true
+            gridElem[c.position[0] + idx * acrossMult][c.position[1] + idx * downMult].classList.remove('bg-info')
+         })
+      }
+   }
+</script>
+
+<svelte:window on:keydown|preventDefault={handleKeyPress}/>
+
+<h1>{content.title}</h1>
+
+<div>
+   วันที่ {content.date} 
+   {#each content.tags || [] as t}
+      <div class="badge badge-outline">{t}</div>
+   {/each}
+</div>
+
+<div class="flex flex-col lg:flex-row mt-10">
+   <div class="text-center w-full lg:w-1/2 mx-auto">
+      <div class="flex flex-col">
+         {#each grid as rows, ridx}
+            <div class="flex flex-row">
+               {#each rows as _, cidx}
+                  {#if grid[cidx][ridx].solution === ''}
+                     <div class="w-20 h-20 border-2 bg-base-content"></div>
+                  {:else}
+                     <div class="relative w-20 h-20" on:click={()=>selectPosition([cidx, ridx])}>
+                        <div 
+                           class="w-full h-full border-2 text-center grid place-content-center"
+                           class:bg-success={grid[cidx][ridx]?.locked}
+                           bind:this={gridElem[cidx][ridx]}
+                        >
+                           <p 
+                              class="text-base-content text-4xl bold-"
+                              class:font-bold={grid[cidx][ridx]?.locked}
+                              >{grid[cidx][ridx].input}</p
+                           >
+                        </div>
+                        {#if grid[cidx][ridx].mark}
+                           <div class="absolute top-0 left-0 pl-2 z-10">{grid[cidx][ridx].mark}</div>
+                        {/if}
+                     </div>
+                  {/if}
+               {/each}
+            </div>
+         {/each}
+      </div>
+      <h1 class="mx-auto">{activeClue.index}) {activeClue.clue}</h1>
+   </div>
+   <div class="text-left w-full lg:w-1/2 p-4 h-80 lg:h-full overflow-y-auto">
+      <h3>แนวตั้ง</h3>
+      <ul>
+      {#each clues as c, idx} 
+         {#if c.direction === 'down'}
+            <li class:bg-neutral-content={activeClue.index == c.index && activeClue.direction === 'down'} class="bg-opacity-20">
+               <a on:click={()=>selectClue(c)}>
+                  <p class:text-neutral-content={solvedClues[idx]}>{c.index}) {c.clue}</p>
+               </a>
+            </li>
+         {/if}
+      {/each}
+      </ul>
+      <h3>แนวนอน</h3>
+      <ul>
+      {#each clues as c, idx}
+         {#if c.direction === 'across'}
+            <li class:bg-neutral-content={activeClue.index == c.index && activeClue.direction === 'across'} class="bg-opacity-20">
+               <a on:click={()=>selectClue(c)}>
+                  <p class:text-neutral-content={solvedClues[idx]}>{c.index}) {c.clue}</p>
+               </a>
+            </li>
+         {/if}
+      {/each}
+      </ul>
+   </div>
+</div>
+
+<!-- Put this part before </body> tag -->
+<input type="checkbox" id="submit-modal" class="modal-toggle"/>
+<!-- svelte-ignore a11y-label-has-associated-control -->
+<label class="modal cursor-pointer w-full" class:modal-open={openModal} on:click={()=>openModal = false}>
+   <label class="modal-box relative" for="">
+      <h3 class="text-xl font-bold m-2">สุดยอด! แก้ปริศนาอักษรไขว้ครบแล้ว 🎉</h3>
+      <div class="btn btn-block btn-outline" on:click={()=>openModal = false}>เย่!</div>
+   </label>
+</label>

@@ -1,7 +1,17 @@
 <script>
    import "../app.css";
- </script>
- 
- <main class="w-screen text-center">
+   import Navbar from "$lib/components/Navbar.svelte";
+   import { navigating } from '$app/stores';
+	import PageNavIndicator from '$lib/components/PageNavIndicator.svelte';
+</script>
+
+<header class="w-screen fixed overflow-x-hidden z-20">
+	{#if $navigating}
+		<PageNavIndicator />
+	{/if}
+	<Navbar/>
+</header>
+
+<main class="w-screen overflow-x-hidden pt-20">
    <slot />
 </main>

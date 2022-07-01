@@ -1,6 +1,8 @@
 <script lang=ts>
-   import type {IPuzzle} from '$lib/interfaces'
-   export let content: IPuzzle
+   import type {IRebus} from '$lib/interfaces'
+   export let content: IRebus
+
+   const imgUrl = new URL(`/src/lib/images/puzzles/rebus/${content.image}`, import.meta.url).href
 
    let solved: boolean = false
    let submitted: boolean = false
@@ -51,7 +53,7 @@
 
 <div class="flex flex-col gap-2 pb-20">
    <h1>{content.title}</h1>
-   <div class="flex flex-row items-center gap-2">
+   <div class="flex flex-row items-center gap-2 mx-auto">
       <p>วันที่ {content.date}</p>
       {#if content.tags}
          {#each content.tags as t}
@@ -61,7 +63,7 @@
    </div>
 
    <div class="mx-auto w-full lg:w-1/2">
-      <img src="/src/lib/images/puzzles/rebus/{content.image}" class="aspect-auto object-contain" alt="img">
+      <img src="{imgUrl}" class="aspect-auto object-contain" alt="img">
    </div>
    <h3>{content.question}</h3>
 

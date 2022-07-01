@@ -1,11 +1,13 @@
 <script lang=ts>
    import type {INews} from '$lib/interfaces'
    export let content: INews
+
+   const imgUrl = new URL(`/src/lib/images/news/${content.image}`, import.meta.url).href
 </script>
 
 <div class="flex flex-col gap-2">
    <div>
-      <img src="/src/lib/images/{content.type}/{content.image}" class="w-full h-60 object-cover" alt="img">
+      <img src="{imgUrl}" class="w-full h-60 object-cover" alt="img">
    </div>
    <h1>{content.title}</h1>
    <div class="flex flex-row gap-2">

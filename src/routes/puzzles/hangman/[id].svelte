@@ -74,7 +74,9 @@
    <h1>รอบที่ {currentRound + 1} / {numRounds}</h1>
    <h2>{roundHint}</h2>
 
-   <LetterInput word={roundAnswer}/>
+   {#each Array(numRounds).fill('') as r, idx}
+      <LetterInput word={content.answers[idx]}/>
+   {/each}
    
    {#if !solved}
       <div class="input-group w-72 mx-auto">
@@ -95,6 +97,8 @@
          {/if}
       {/each}
    {/if}
+
+   <div class="btn" on:click={nextRound}>Next puzzle</div>
 </div>
 
 <!-- Put this part before </body> tag -->

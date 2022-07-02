@@ -17,5 +17,17 @@ export function isLegal(a: string) {
 }
 
 export function appendable(a: string, b: string) {
-   return a.match(/[ก-ฮ]/) && b.match(/[\u0E31\u0E34-\u0E39\u0E47-\u0E4D]/)
+   return a.match(/[ก-ฮ]/) && b.match(`/[${upperLetterRegex}${lowerLetterRegex}]/`)
 }
+
+export function isUpper(a: string) {
+    return a.match(upperLetterRegex)
+}
+
+export function isLower(a: string) {
+    return a.match(lowerLetterRegex)
+}
+
+export const consonantRegex = /[\u0E01-\u0E2E]/
+export const upperLetterRegex = /[\u0E31\u0E34-\u0E37\u0E47-\u0E4C`]/
+export const lowerLetterRegex = /[\u0E38-\u0E39]/

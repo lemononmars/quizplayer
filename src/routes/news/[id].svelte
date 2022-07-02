@@ -10,7 +10,7 @@
       <img src="{imgUrl}" class="w-full h-60 object-cover" alt="img">
    </div>
    <h1>{content.title}</h1>
-   <div class="flex flex-row gap-2">
+   <div class="flex flex-row gap-2 mx-auto items-center">
       <p>{content.date}</p>
       {#if content.tags}
          {#each content.tags as t}
@@ -18,6 +18,5 @@
          {/each}
       {/if}
    </div>
-
-   <p>{content.content}</p>
+   <div class="divider"></div>
 </div>

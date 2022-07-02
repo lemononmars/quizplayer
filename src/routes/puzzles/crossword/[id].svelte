@@ -1,6 +1,6 @@
 <script lang=ts>
    import type { IPuzzleCrossword, CrosswordClue } from "$lib/interfaces";
-   import {splitWord, isLegal, appendable} from "./utils"
+   import {splitWord, isLegal, appendable} from "$lib/utils/thaiwords"
    import {onMount} from 'svelte'
 
    interface Clue extends CrosswordClue {

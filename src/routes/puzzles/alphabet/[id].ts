@@ -1,10 +1,10 @@
-import {hangman} from '$lib/data/puzzles/hangman'
+import {alphabet} from '$lib/data/puzzles/alphabet'
 
-/** @type {import('./__types/hangman/[id]').RequestHandler} */
+/** @type {import('./__types/alphabet/[id]').RequestHandler} */
 export async function get({ params }) {
    const {id} = params
    // TODO: make it fetch, await, etc?
-   const content = hangman.filter(n => n.id == id)
+   const content = alphabet.filter(n => n.id == id)
   
    if (content.length > 0) {
      return {

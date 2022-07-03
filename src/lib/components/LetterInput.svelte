@@ -1,7 +1,15 @@
 <script lang=ts>
-   import {splitWord, isUpper, isLower} from '$lib/utils/thaiwords'
+   import {splitWord, isUpper, isLower, isTall} from '$lib/utils/thaiwords'
    import {fade} from 'svelte/transition'
-   import { onMount } from 'svelte';
+
+   import { createEventDispatcher } from 'svelte';
+
+	const dispatch = createEventDispatcher();
+
+	function togglePlay() {
+		dispatch('togglePlay');
+	}
+
    export let word: string = 'ว่าง'
 
    const splittedWord = splitWord(word)
@@ -22,22 +30,22 @@
       currentLength += splittedWord[i].length
    }
 
-   let revealPeriod = 2000
-   let time = numLetters
+   let interval = 100 // run every (in ms)
+   const revealInterval = 2000 // reveal every (in ms)
+   const maxTime = numLetters * revealInterval
+   let time = maxTime
    let timer: any
 
-   onMount(async ()=> {
-      timer = setInterval(()=> {
-         time --
+   function countdown() {
+      if(Math.floor(time/revealInterval) > Math.floor((time-interval)/revealInterval)) {
          setActiveLetter(Math.floor(Math.random()*numLetters))
          reveal(nextHiddenLetter())
-
-         if(time <= 0)
-            clearInterval(timer)
       }
-         ,revealPeriod
-      )
-   })
+      
+      time -= interval
+      if(time <= 0)
+         clearInterval(timer)
+   }
 
    function setActiveLetter(index: number) {
       letterElement[activeLetterIndex].classList.remove('animate-pulse', 'border-info')
@@ -62,19 +70,24 @@
       return activeLetterIndex
    }
 
-   function handleKeyPress(event: KeyboardEvent) {
-		if (event.code === "Tab" || event.code === 'Space' || event.code === 'ArrowRight') 
-         nextHiddenLetter()
-      else if (event.code === 'Enter') {
-         reveal(activeLetterIndex) 
-         nextHiddenLetter()
-      }
-      else if (event.code === 'ArrowLeft')
-         setActiveLetter((activeLetterIndex + numLetters - 1) % numLetters)
-	}
+   // function handleKeyPress(event: KeyboardEvent) {
+	// 	if (event.code === "Tab" || event.code === 'Space' || event.code === 'ArrowRight') 
+   //       nextHiddenLetter()
+   //    else if (event.code === 'Enter') {
+   //       reveal(activeLetterIndex) 
+   //       nextHiddenLetter()
+   //    }
+   //    else if (event.code === 'ArrowLeft')
+   //       setActiveLetter((activeLetterIndex + numLetters - 1) % numLetters)
+	// }
 
    function reveal(index: number){
       revealedLetters[index] = true
+   }
+   
+   function clickReveal(index: number) {
+      revealedLetters[index] = true
+      time -= revealInterval
    }
 
    let isPaused: boolean = false
@@ -82,28 +95,21 @@
    function pause() {
       isPaused = true
       clearInterval(timer)
+      togglePlay()
    }
 
    function play() {
       isPaused = false
-      timer = setInterval(()=> {
-         time --
-         setActiveLetter(Math.floor(Math.random()*numLetters))
-         reveal(nextHiddenLetter())
-
-         if(time <= 0)
-            clearInterval(timer)
-      }
-         ,revealPeriod
-      )
+      timer = setInterval(countdown,interval)
+      togglePlay()
    }
 </script>
 
-<svelte:window on:keydown={handleKeyPress}/>
+<!-- <svelte:window on:keydown={handleKeyPress}/> -->
 
-<div class="radial-progress mx-auto" style="--value:{time*100/numLetters};">
+<div class="radial-progress mx-auto" style="--value:{time*100/maxTime};" class:text-warning={isPaused}>
    <span class="countdown">
-      <span style="--value:{time};"></span>
+      <span style="--value:{Math.floor(time/1000)};"></span>
     </span>
 </div>
 
@@ -113,16 +119,18 @@
          {#each word as l, idx}
             {@const letterIndex = splittedIndex[widx] + idx}
             <div 
-               class="absolute {isLower(l) ? 'top-12': isUpper(l) ? (idx > 0 && isUpper(word[idx-1]) ? '-top-12' : '-top-6') : 'top-0'} left-0 w-full {isLower(l) || isUpper(l) ? 'h-6' : 'h-12'} border-2"
-               class:bg-success={revealedLetters[letterIndex]}
+               class="absolute {isLower(l) ? 'top-12': isUpper(l) ? (idx > 0 && isUpper(word[idx-1]) ? '-top-8' : '-top-4') : isTall(l) ? '-top-4' : 'top-0'} left-0 w-full {isLower(l) || isUpper(l) ? 'h-4' : isTall(l) ? 'h-16' :'h-12'} border-2"
+               class:bg-success={!revealedLetters[letterIndex]}
                bind:this={letterElement[letterIndex]}
-               on:click={()=>reveal(letterIndex)}
+               on:click={()=>clickReveal(letterIndex)}
             >
                {#if revealedLetters[letterIndex]}
                   {#if isLower(l)}
                      <p class="-translate-y-8 translate-x-2 text-4xl" transition:fade>{l}</p>
                   {:else if isUpper(l)}
-                     <p class="translate-x-2 text-4xl" transition:fade>{l}</p>
+                     <p class="translate-x-2 -translate-y-1 text-4xl" transition:fade>{l}</p>
+                  {:else if isTall(l)}
+                     <p class="text-4xl translate-y-4" transition:fade>{l}</p>
                   {:else}
                      <p class="text-4xl" transition:fade>{l}</p>
                   {/if}
@@ -133,12 +141,18 @@
    {/each}
 </div>
 
+{#if time == maxTime}
+   <div class="btn btn-info" on:click={play}>
+      เริ่ม!
+   </div>
+{/if}
+
 {#if isPaused}
    <div class="btn btn-info" on:click={play}>
-      Continue!
+      ดูตัวอักษรเพิ่ม
    </div>
-{:else}
+{:else if time < maxTime}
    <div class="btn btn-error" on:click={pause}>
-      Pause!
+      ขอตอบ!
    </div>
 {/if}

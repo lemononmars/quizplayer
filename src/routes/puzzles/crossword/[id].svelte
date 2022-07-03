@@ -1,6 +1,8 @@
 <script lang=ts>
    import type { IPuzzleCrossword, CrosswordClue } from "$lib/interfaces";
    import {splitWord, isLegal, appendable} from "$lib/utils/thaiwords"
+
+   import TitleTab from "$lib/components/TitleTab.svelte";
    import {onMount} from 'svelte'
 
    interface Clue extends CrosswordClue {
@@ -40,12 +42,8 @@
    })
 
    let solvedClues: boolean[] = clues.map(_=> false)
-   $: solved = solvedClues.every(c => c)
+   let solved: boolean
    let openModal: boolean = false
-   $: if(solved) {
-      gridElem[activeCell[0]][activeCell[1]].classList.remove('border-primary-content', 'animate-pulse')
-      openModal = true
-   }
 
    type Cell = [number, number]
    type Direction = 'down' | 'across'
@@ -76,6 +74,7 @@
       .map(_ => (Array(gridWidth).fill('')
          .map(_ => null)
       ))
+   let hiddenInputElement: HTMLElement
 
    // Tranpose the matrix
    clues.forEach(c => {
@@ -135,6 +134,8 @@
       toggleHighlight(newClue)
       activeClue = newClue
       changeActiveCell(position)
+
+      hiddenInputElement.focus()
    }
 
    function nextCell() {
@@ -214,11 +215,18 @@
    }
 
    function checkAnswer(position: Cell){
+      if(solved) return
       const {down, across} = grid[position[0]][position[1]]
       if(down > -1)
          checkAnswerClue(getClue('down', down))
       if(across > -1)
          checkAnswerClue(getClue('across', across))
+
+      if(solvedClues.every(c=>c)) {
+         solved = true
+         gridElem[activeCell[0]][activeCell[1]].classList.remove('border-primary-content', 'animate-pulse')
+         openModal = true
+      }
    }
 
    function checkAnswerClue(c: Clue | null) {
@@ -241,15 +249,9 @@
 
 <svelte:window on:keydown|preventDefault={handleKeyPress}/>
 
-<h1>{content.title}</h1>
+<TitleTab {content}/>
 
-<div>
-   วันที่ {content.date} 
-   {#each content.tags || [] as t}
-      <div class="badge badge-outline">{t}</div>
-   {/each}
-</div>
-
+<input type="text" bind:this={hiddenInputElement} hidden>
 <div class="flex flex-col lg:flex-row mt-10">
    <div class="text-center w-full lg:w-1/2 ">
       <div class="flex flex-col">

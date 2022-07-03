@@ -1,18 +1,22 @@
 <script lang=ts>
-   import type {IHangman} from '$lib/interfaces'
+   import type {IAlphabet} from '$lib/interfaces'
    import LetterInput from '$lib/components/LetterInput.svelte';
-   export let content: IHangman
+
+   import TitleTab from '$lib/components/TitleTab.svelte';
+   import {fly} from 'svelte/transition'
+
+   export let content: IAlphabet
 
    let solved: boolean = false
    let submitted: boolean = false
 
+   let isPaused: boolean = false
+
    let answer: string = ''
    let duplicate: boolean = false
-   let showAnswer: boolean = false
    let pastAnswers: string[] = []
 
    $: length = pastAnswers.length
-   let numHints: number = 0
    const numRounds = content.answers.length
    let currentRound = 0
    $: roundAnswer = content.answers[currentRound]
@@ -58,30 +62,30 @@
 		if (event.code != "Enter") return;
 		checkAnswer()
 	}
+
+   function togglePlay() {
+      isPaused = !isPaused
+   }
 </script>
 
-<div class="flex flex-col gap-2 pb-10">
-   <h1>{content.title}</h1>
-   <div class="flex flex-row items-center gap-2 mx-auto">
-      <p>วันที่ {content.date}</p>
-      {#if content.tags}
-         {#each content.tags as t}
-            <a href="/puzzles/rebus?tag={t}"><div class="badge badge-outline">{t}</div></a>
-         {/each}
-      {/if}
-   </div>
+<TitleTab {content}/>
 
+<div class="flex flex-col gap-2 pb-10">
    <h1>รอบที่ {currentRound + 1} / {numRounds}</h1>
-   <h2>{roundHint}</h2>
+   <h2>คำใบ้: {roundHint}</h2>
 
    {#each Array(numRounds).fill('') as r, idx}
-      <LetterInput word={content.answers[idx]}/>
+      <div class:hidden={currentRound != idx} transition:fly={{x:100, duration: 300}}>
+         <LetterInput word={content.answers[idx]} on:togglePlay={togglePlay}/>
+      </div>
    {/each}
+
+   <div class="divider"></div>
    
-   {#if !solved}
+   {#if !solved && isPaused}
       <div class="input-group w-72 mx-auto">
          <input class="input input-bordered" type="text" bind:value={answer} on:keydown={handleKeyPress}>
-         <div class="btn btn-primary " on:click={checkAnswer}>ตรวจคำตอบ</div>
+         <div class="btn btn-primary " on:click={checkAnswer}>ตอบ</div>
       </div>
    {/if}
    {#if submitted}

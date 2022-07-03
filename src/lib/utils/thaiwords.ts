@@ -17,7 +17,7 @@ export function isLegal(a: string) {
 }
 
 export function appendable(a: string, b: string) {
-   return a.match(/[ก-ฮ]/) && b.match(`/[${upperLetterRegex}${lowerLetterRegex}]/`)
+   return a.match(consonantRegex) && (b.match(upperLetterRegex) || b.match(lowerLetterRegex))
 }
 
 export function isUpper(a: string) {
@@ -26,6 +26,10 @@ export function isUpper(a: string) {
 
 export function isLower(a: string) {
     return a.match(lowerLetterRegex)
+}
+
+export function isTall(a: string) {
+    return a === 'ใ' || a === 'ไ'
 }
 
 export const consonantRegex = /[\u0E01-\u0E2E]/

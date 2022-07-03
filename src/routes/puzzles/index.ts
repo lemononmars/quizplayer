@@ -1,6 +1,6 @@
 import {rebuses as rebus} from '$lib/data/puzzles/rebus'
 import crossword from '$lib/data/puzzles/crosswords'
-import {hangman} from '$lib/data/puzzles/hangman'
+import {alphabet} from '$lib/data/puzzles/alphabet'
 
 /** @type {import('./__types/puzzles/index.ts').RequestHandler} */
 export async function get({ url }) {
@@ -12,7 +12,7 @@ export async function get({ url }) {
             puzzles: {
                rebus: rebus.filter(n => n.tags?.includes(tag)),
                crossword: crossword.filter(n => n.tags?.includes(tag)),
-               hangman: hangman.filter(n => n.tags?.includes(tag))
+               alphabet: alphabet.filter(n => n.tags?.includes(tag))
             }
          }
       }
@@ -21,7 +21,7 @@ export async function get({ url }) {
       return {
          body: { 
             puzzles: {
-               rebus, crossword, hangman
+               rebus, crossword, alphabet
             } 
          }
       };

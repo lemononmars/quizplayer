@@ -1,22 +1,22 @@
-import type {IHangman} from '$lib/interfaces'
+import type {IAlphabet} from '$lib/interfaces'
 
-export const hangman: IHangman[] = [
+export const alphabet: IAlphabet[] = [
    {
-      type: "hangman",
+      type: "alphabet",
       id: 1,
       title: "สุภาษิต",
       date: "2022-07-02",
-      tags: ["hangman", "word puzzle"],
+      tags: ["alphabet", "word puzzle"],
       hints: ["อาหาร"],
       answers: ["กว่าถั่วจะสุกงาก็ไหม้"]
    },
    {
-      type: "hangman",
+      type: "alphabet",
       id: 2,
       title: "ฤดูร้อน",
       date: "2022-07-02",
-      tags: ["hangman", "word puzzle"],
-      hints: ["ทะเล", "ชายหาด", "อาหาร"],
+      tags: ["alphabet", "word puzzle"],
+      hints: ["ทะเล", "ทะเล", "ทะเล"],
       answers: ["สวนสยามทะเลกรุงเทพ", "กว่าจะรวมจิตใจเก็บทรายสวยๆมากอง", "ปลากะพงนึ่งมะนาว"]
    },
 ]

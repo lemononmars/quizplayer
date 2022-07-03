@@ -1,4 +1,4 @@
-import {hangman} from '$lib/data/puzzles/hangman'
+import {alphabet} from '$lib/data/puzzles/alphabet'
 
 /** @type {import('./__types/puzzles/rebus/index.ts').RequestHandler} */
 export async function get({ url }) {
@@ -7,13 +7,13 @@ export async function get({ url }) {
       return {
          status: 200,
          body: { 
-            puzzles: hangman.filter(n => n.tags?.includes(tag))
+            puzzles: alphabet.filter(n => n.tags?.includes(tag))
          }
       }
    }
    else {
       return {
-         body: { puzzles: hangman }
+         body: { puzzles: alphabet }
       };
    }
 }

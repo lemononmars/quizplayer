@@ -1,9 +1,10 @@
 export interface IContent {
-   type: 'news' | 'rebus' | 'crossword' | 'hangman',
+   type: 'news' | 'rebus' | 'crossword' | 'alphabet',
    id: number,
    title: string,
    date: string,
    tags?: string[],
+   author?: string
 }
 
 export interface INews extends IContent {
@@ -33,8 +34,10 @@ export interface CrosswordClue {
    position: [number, number]
 }
 
-export interface IHangman extends IContent {
-   type: 'hangman',
+export interface IAlphabet extends IContent {
+   type: 'alphabet',
    hints: string[],
    answers: string[]
 }
+
+export type PuzzleType = 'alphabet' | 'rebus' | 'crossword'

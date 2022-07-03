@@ -1,5 +1,6 @@
 <script lang=ts>
    import type {IRebus} from '$lib/interfaces'
+   import TitleTab from '$lib/components/TitleTab.svelte';
    export let content: IRebus
 
    const imgUrl = new URL(`/src/lib/images/puzzles/rebus/${content.image}`, import.meta.url).href
@@ -52,15 +53,7 @@
 </script>
 
 <div class="flex flex-col gap-2 pb-10">
-   <h1>{content.title}</h1>
-   <div class="flex flex-row items-center gap-2 mx-auto">
-      <p>วันที่ {content.date}</p>
-      {#if content.tags}
-         {#each content.tags as t}
-            <a href="/puzzles/rebus?tag={t}"><div class="badge badge-outline">{t}</div></a>
-         {/each}
-      {/if}
-   </div>
+   <TitleTab {content}/>
 
    <div class="mx-auto w-full lg:w-1/2">
       <img src="{imgUrl}" class="aspect-auto object-contain" alt="img">

@@ -19,4 +19,13 @@ export const alphabet: IAlphabet[] = [
       hints: ["ทะเล", "ทะเล", "ทะเล"],
       answers: ["สวนสยามทะเลกรุงเทพ", "กว่าจะรวมจิตใจเก็บทรายสวยๆมากอง", "ปลากะพงนึ่งมะนาว"]
    },
+   {
+      type: "alphabet",
+      id: 3,
+      title: "สุภาษิตไทย",
+      date: "2022-07-06",
+      tags: ["alphabet", "word puzzle"],
+      hints: ["สุภาษิตไทย"],
+      answers: ["ปลาหมอตายเพราะปาก"]
+   },
 ]

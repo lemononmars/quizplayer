@@ -106,14 +106,14 @@
 </script>
 
 <!-- <svelte:window on:keydown={handleKeyPress}/> -->
-
+<div class="flex flex-col gap-4">
 <div class="radial-progress mx-auto" style="--value:{time*100/maxTime};" class:text-warning={isPaused}>
-   <span class="countdown">
-      <span style="--value:{Math.floor(time/1000)};"></span>
-    </span>
+   <div class="countdown">
+      <p style="--value:{Math.floor(time/1000)};"></p>
+   </div>
 </div>
 
-<div class="my-20 w-full flex flex-row gap-1 justify-center">
+<div class="h-20 w-full flex flex-row gap-1 justify-center">
    {#each splittedWord as word, widx}
       <div class="w-12 relative">
          {#each word as l, idx}
@@ -126,13 +126,13 @@
             >
                {#if revealedLetters[letterIndex]}
                   {#if isLower(l)}
-                     <p class="-translate-y-8 translate-x-2 text-4xl" transition:fade>{l}</p>
+                     <p class="-translate-y-8 translate-x-2 text-xl lg:text-4xl" transition:fade>{l}</p>
                   {:else if isUpper(l)}
-                     <p class="translate-x-2 -translate-y-1 text-4xl" transition:fade>{l}</p>
+                     <p class="translate-x-2 -translate-y-1 text-xl lg:text-4xl" transition:fade>{l}</p>
                   {:else if isTall(l)}
-                     <p class="text-4xl translate-y-4" transition:fade>{l}</p>
+                     <p class="text-xl lg:text-4xl translate-y-4" transition:fade>{l}</p>
                   {:else}
-                     <p class="text-4xl" transition:fade>{l}</p>
+                     <p class="text-xl lg:text-4xl" transition:fade>{l}</p>
                   {/if}
                {/if}
             </div>
@@ -156,3 +156,4 @@
       ขอตอบ!
    </div>
 {/if}
+</div>

@@ -8,10 +8,10 @@
 <h1>{content.title}</h1>
 <div class="flex flex-row items-center gap-2 mx-auto justify-center">
    <p>วันที่ {dateToThaiString(content.date)}</p>
-   <div>
+   <div class="flex flex-row gap-1">
       {#if content.tags}
          {#each content.tags as t}
-            <a href="/puzzles/rebus?tag={t}"><div class="badge badge-outline">{t}</div></a>
+            <a href="/puzzles/{content.type}?tag={t}"><div class="badge badge-outline">{t}</div></a>
          {/each}
       {/if}
    </div>

@@ -10,7 +10,8 @@
    let solved: boolean = false
    let submitted: boolean = false
 
-   let isPaused: boolean = false
+   let isPaused: boolean = true
+   let loading: boolean = false
 
    let answer: string = ''
    let duplicate: boolean = false
@@ -43,16 +44,18 @@
    }
 
    function nextRound(){
-      if(currentRound === numRounds - 1) {
+      if(currentRound == numRounds - 1) {
          openModal = true
       }
       else {
+         loading = true
          // wait 3 seconds before starting next round
          setTimeout(()=> {
             currentRound ++
             submitted = false
             solved = false
             pastAnswers = []
+            loading = false
          }
          , 3000)
       }
@@ -74,11 +77,17 @@
    <h1>รอบที่ {currentRound + 1} / {numRounds}</h1>
    <h2>คำใบ้: {roundHint}</h2>
 
-   {#each Array(numRounds).fill('') as r, idx}
-      <div class:hidden={currentRound != idx} transition:fly={{x:100, duration: 300}}>
-         <LetterInput word={content.answers[idx]} on:togglePlay={togglePlay}/>
-      </div>
-   {/each}
+   {#if !loading}
+      {#each Array(numRounds).fill('') as r, idx}
+         {#if currentRound == idx}
+            <div transition:fly={{x:100, duration: 300}}>
+               <LetterInput word={content.answers[idx]} on:togglePlay={togglePlay}/>
+            </div>
+         {/if}
+      {/each}
+   {:else}
+      <div class="btn loading"></div>
+   {/if}
 
    <div class="divider"></div>
    

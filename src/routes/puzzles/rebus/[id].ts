@@ -3,11 +3,12 @@ import { getPuzzle } from '../../api'
 
 /** @type {import('./__types/[id]').RequestHandler} */
 export async function get({ params }) {
+  console.log('grabbing file from database')
   const {id} = params
   const res = await getPuzzle('rebus', id)
 
   let content = await res.body 
-  if(!res.ok && content.length > 0)
+  if(content.length > 0)
     content = await res.body
   else
     content = rebuses.filter(n => n.id == id)

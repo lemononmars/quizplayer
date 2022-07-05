@@ -14,7 +14,7 @@
    let clues: Clue[] = content.clues
 
    const sizeStr = content.size[0] >= 6 ? 'w-10 h-10' : 'w-20 h-20'
-   const letterSize = content.size[0] >= 6 ? 'text-md' : 'text-2xl'
+   const letterSize = content.size[0] >= 6 ? 'text-xl' : 'text-5xl'
 
    // add indices to the clues by sorting it from top-left to bottom-right
    let sortedPositions = content.clues.map((c, idx) => [idx, c.position[0], c.position[1]])
@@ -204,6 +204,8 @@
       }
       else if(event.code === 'Backspace')
          grid[activeCell[0]][activeCell[1]].input = ''
+      // else 
+      //    alert("ลืมเปลี่ยนภาษาหรือเปล่า?")
 
       checkAnswer(activeCell)
    }
@@ -270,12 +272,13 @@
                            <p 
                               class="text-base-content {letterSize}"
                               class:font-bold={grid[cidx][ridx]?.locked}
+                              class:text-success-content={grid[cidx][ridx]?.locked}
                               >{grid[cidx][ridx].input}</p
                            >
                         </div>
                         {#if grid[cidx][ridx].mark}
                            <div class="absolute top-0 left-0 pl-2 z-10">
-                              <p class="{letterSize}">{grid[cidx][ridx].mark}</p>
+                              <p class="text-xl">{grid[cidx][ridx].mark}</p>
                            </div>
                         {/if}
                      </div>
@@ -293,7 +296,7 @@
          {#if c.direction === 'down'}
             <li class:bg-neutral-content={activeClue.index == c.index && activeClue.direction === 'down'} class="bg-opacity-20">
                <a on:click={()=>selectClue(c)}>
-                  <p class:text-neutral-content={solvedClues[idx]}>{c.index}) {c.clue}</p>
+                  <p class:opacity-40={solvedClues[idx]}>{c.index}) {c.clue}</p>
                </a>
             </li>
          {/if}
@@ -305,7 +308,7 @@
          {#if c.direction === 'across'}
             <li class:bg-neutral-content={activeClue.index == c.index && activeClue.direction === 'across'} class="bg-opacity-20">
                <a on:click={()=>selectClue(c)}>
-                  <p class:text-neutral-content={solvedClues[idx]}>{c.index}) {c.clue}</p>
+                  <p class:opacity-40={solvedClues[idx]}>{c.index}) {c.clue}</p>
                </a>
             </li>
          {/if}

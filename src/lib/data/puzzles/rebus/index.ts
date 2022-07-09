@@ -6,7 +6,7 @@ export const rebuses: IRebus[] = [
       "id": 1,
       "title": "Rebus 01",
       "image": "rebus01.png",
-      "question": "ภาพนี้หมายถึงคำว่าอะไร?",
+      "question": "(static file) ภาพนี้หมายถึงคำว่าอะไร?",
       "date": "2022-06-01",
       "tags": ["rebus", "word puzzle"],
       "answer": "ยาหลังอาหาร",

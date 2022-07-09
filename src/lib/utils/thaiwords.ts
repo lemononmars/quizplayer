@@ -1,3 +1,5 @@
+import dict from '$lib/utils/dict'
+
 export function splitWord(word: string) {
    var alphas = word.split("");
    var out: string[] = [];
@@ -35,3 +37,7 @@ export function isTall(a: string) {
 export const consonantRegex = /[\u0E01-\u0E2E]/
 export const upperLetterRegex = /[\u0E31\u0E34-\u0E37\u0E47-\u0E4C`]/
 export const lowerLetterRegex = /[\u0E38-\u0E39]/
+
+export function search(word: string) {
+    return dict.includes(word)
+}

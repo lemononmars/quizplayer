@@ -19,6 +19,11 @@
          description: "ทายคำจากคำใบ้ โดยเปิดตัวอักษรให้น้อยที่สุด",
          icon: alphaUrl
       },
+      {
+         type: "spellingbee",
+         description: "หาคำ 7 ตัวอักษร",
+         icon: alphaUrl
+      },
    ]
 
 </script>

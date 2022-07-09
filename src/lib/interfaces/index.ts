@@ -1,5 +1,5 @@
 export interface IContent {
-   type: 'news' | 'rebus' | 'crossword' | 'alphabet',
+   type: 'news' | PuzzleType,
    id: number,
    title: string,
    date: string,
@@ -40,4 +40,11 @@ export interface IAlphabet extends IContent {
    answers: string[]
 }
 
-export type PuzzleType = 'alphabet' | 'rebus' | 'crossword'
+export interface ISpellingBee extends IContent {
+   type: 'spellingbee',
+   letters: string[],
+   pangram: string[],
+   solutions: string[]
+}
+
+export type PuzzleType = 'alphabet' | 'rebus' | 'crossword' | 'spellingbee'

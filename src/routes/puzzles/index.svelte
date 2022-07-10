@@ -2,6 +2,7 @@
    const crossUrl = new URL(`/src/lib/images/icons/crossword.png`, import.meta.url).href
    const alphaUrl = new URL(`/src/lib/images/icons/alphabet.png`, import.meta.url).href
    const rebusUrl = new URL(`/src/lib/images/icons/rebus.png`, import.meta.url).href
+   const beeUrl = new URL(`/src/lib/images/icons/spellingbee.png`, import.meta.url).href
 
    const puzzleDescriptions = [
       {
@@ -22,7 +23,7 @@
       {
          type: "spellingbee",
          description: "หาคำ 7 ตัวอักษร",
-         icon: alphaUrl
+         icon: beeUrl
       },
    ]
 
@@ -39,7 +40,7 @@
 <div class="grid lg:grid-cols-2 px-2 gap-2">
    {#each puzzleDescriptions as p}
       <a href="/puzzles/{p.type}">
-         <div class="flex flex-row gap-2 border-2 shadow-lg hover:scale-105 transition ease-in-out hover:bg-info-content">
+         <div class="flex flex-row gap-2 border-2 shadow-lg shadow-white hover:scale-105 transition ease-in-out hover:bg-info-content m-4">
             <div>
                <img src="{p.icon}" class="h-32 aspect-square object-cover" alt="img">
             </div>

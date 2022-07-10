@@ -1,19 +1,19 @@
-import {news} from '$lib/data/news'
+import {events} from '$lib/data/events'
 
-/** @type {import('./__types/news/index.ts').RequestHandler} */
+/** @type {import('./__types/events/index.ts').RequestHandler} */
 export async function get({ url }) {
    const tag = url.searchParams.get('tag')
    if(tag) {
       return {
          status: 200,
          body: { 
-            news: news.filter(n => n.tags?.includes(tag))
+            events: events.filter(n => n.tags?.includes(tag))
          }
       }
    }
    else {
       return {
-         body: { news }
+         body: { events }
       };
    }
 }

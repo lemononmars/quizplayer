@@ -1,5 +1,5 @@
 export interface IContent {
-   type: 'news' | PuzzleType,
+   type: 'event' | 'blog' | PuzzleType,
    id: number,
    title: string,
    date: string,
@@ -7,8 +7,8 @@ export interface IContent {
    author?: string
 }
 
-export interface INews extends IContent {
-   type: 'news',
+export interface IEvent extends IContent {
+   type: 'event',
    image: string,
    content: string,
 }

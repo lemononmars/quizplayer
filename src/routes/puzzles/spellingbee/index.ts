@@ -1,19 +1,21 @@
-import {spellingbee} from '$lib/data/puzzles/spellingbee'
+import {spellingbee, numPuzzles} from '$lib/data/puzzles/spellingbee'
+// import { getPuzzle } from '../../api'
 
-/** @type {import('./__types/puzzles/rebus/index.ts').RequestHandler} */
+/** @type {import('./__types/[id]').RequestHandler} */
 export async function get({ url }) {
-   const tag = url.searchParams.get('tag')
-   if(tag) {
-      return {
-         status: 200,
-         body: { 
-            puzzles: spellingbee.filter(n => n.tags?.includes(tag))
-         }
+  const id = url.searchParams.get('id')
+  if(!id || parseInt(id) > numPuzzles) {    
+    const newID = Math.floor(Math.random()*numPuzzles)
+    return {
+      status: 303,
+      headers: {
+        location: `/puzzles/spellingbee?id=${newID}`
       }
-   }
-   else {
-      return {
-         body: { puzzles: spellingbee }
-      };
-   }
-}
+    };
+  }
+
+  let content = spellingbee[id]
+  return {
+    body: { content }
+  };
+ }

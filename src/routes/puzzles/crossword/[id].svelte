@@ -253,7 +253,7 @@
 
 <TitleTab {content}/>
 
-<input type="text" bind:this={hiddenInputElement} hidden>
+<input type="text" bind:this={hiddenInputElement} class="block lg:hidden mx-auto w-10">
 <div class="flex flex-col lg:flex-row mt-10">
    <div class="text-center w-full lg:w-1/2 ">
       <div class="flex flex-col">

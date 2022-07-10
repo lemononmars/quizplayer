@@ -1,8 +1,8 @@
 <script lang=ts>
-   import type {INews} from '$lib/interfaces'
-   export let content: INews
+   import type {IEvent} from '$lib/interfaces'
+   export let content: IEvent
 
-   const imgUrl = new URL(`/src/lib/images/news/${content.image}`, import.meta.url).href
+   const imgUrl = new URL(`/src/lib/images/events/${content.image}`, import.meta.url).href
 </script>
 
 <div class="flex flex-col gap-2">
@@ -19,4 +19,5 @@
       {/if}
    </div>
    <div class="divider"></div>
+   <pre class="whitespace-pre-wrap text-left">{content.content}</pre>
 </div>

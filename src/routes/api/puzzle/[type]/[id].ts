@@ -14,6 +14,13 @@ export async function get({ params }) {
 	const {type, id} = params;
 	const { data, error } = await from(type).select('*').eq('id', id);
 
+	if(error) 
+		return {
+			status: 500,
+			headers: { 'Content-Type': 'application/json' },
+			body: error
+		};
+
 	return {
 		status: 200,
 		headers: { 'Content-Type': 'application/json' },

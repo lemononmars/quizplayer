@@ -1,6 +1,6 @@
 import fs from 'fs'
 
-fs.readFile('./src/lib/utils/dict.json', 'utf8', (err, jsonString) => {
+fs.readFile('./dict.json', 'utf8', (err, jsonString) => {
 
    const dict = JSON.parse(jsonString)
    const wordLength = 7
@@ -14,22 +14,9 @@ fs.readFile('./src/lib/utils/dict.json', 'utf8', (err, jsonString) => {
       if(set.size < wordLength)
          continue
 
-      let solutions = []
-      for(const w of dict) {
-         if(w.split("").every(l => solution.includes(l))) {
-            solutions = [...solutions, w]
-         }
-      }
-
       let object = {
-         type: "spellingbee",
          id,
-         title: "Spelling Bee " + id,
-         date: "2022-07-08",
-         tags: ["spelling bee", "word puzzle"],
-         letters: solution.split(""),
-         pangram: [solution],
-         solutions
+         word: solution
       }
       results = [...results, object]
       id ++

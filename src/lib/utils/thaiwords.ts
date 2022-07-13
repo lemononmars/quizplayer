@@ -41,3 +41,23 @@ export const lowerLetterRegex = /[\u0E38-\u0E39]/
 export function search(word: string) {
     return dict.includes(word)
 }
+
+export function getSubWords(word: string, allowRepeat: boolean = true) {
+    let subWords: string[] = []
+
+    if(allowRepeat)
+        for(const w of dict) {
+            if(w.split("").every(l => word.includes(l))) {
+                subWords = [...subWords, w]
+            }
+        }
+    else
+        for(const w of dict) {
+            const a = w.split("")
+            if(new Set(a).size == a.length && a.every(l => word.includes(l))) {
+                subWords = [...subWords, w]
+            }
+        }
+
+    return subWords
+}

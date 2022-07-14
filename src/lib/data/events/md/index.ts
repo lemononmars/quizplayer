@@ -1,16 +1,9 @@
-import event01 from "./event01.md"
-import event02 from "./event02.md"
-import event03 from "./event03.md"
-import event04 from "./event04.md"
-import event05 from "./event05.md"
+const NUM_EVENTS = 5
 
-export function getMD(id: number){
-   switch(id) {
-      case 1: return event01
-      case 2: return event02
-      case 3: return event03
-      case 4: return event04
-      case 5: return event05
-      default: return event01
-   }
+export async function getMD(id: number){
+   if(id > 5)
+      return {}
+      
+   let md = await import(`./event0${id}.md`)
+   return md.default
 }

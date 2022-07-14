@@ -2,9 +2,15 @@
    import type {IEvent} from '$lib/interfaces'
    import {getImageURL} from '$lib/supabase'
    import {getMD} from '$lib/data/events/md'
+   import { onMount } from 'svelte';
 
    export let content: IEvent
-   const md = getMD(content.id)
+   let md: any
+
+   onMount(async() =>{
+      md = await getMD(content.id)
+   })
+   
 </script>
 
 <div class="flex flex-col gap-2">
@@ -23,6 +29,8 @@
    <div class="divider"></div>
 </div>
 
+{#if md}
 <div class="text-left">
    <svelte:component this={md}/>
 </div>
+{/if}

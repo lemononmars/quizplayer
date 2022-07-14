@@ -13,8 +13,8 @@ export function getPuzzle(id: number){
 }
 
 export function getDailySpellingBee() {
-   // July 13, 2022 Game Epoch
-  const epochMs = 1657699200000 
+   // July 13, 2022 GMT+7 Game Epoch
+  const epochMs = 1657645200000
   const now = Date.now()
   const msInDay = 86400000
   const dateIndex = Math.floor((now - epochMs) / msInDay) % daily.length

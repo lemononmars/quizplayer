@@ -1,9 +1,22 @@
+<script context=module lang=ts>
+   export async function load({fetch, params}) {
+      const {id} = params
+      const res = await fetch(`/api/puzzle/rebus/${id}`)
+      const content = await res.json()
+
+      return {
+         props: {
+            content
+         }
+      }
+   }
+</script>
+
 <script lang=ts>
    import type {IRebus} from '$lib/interfaces'
    import TitleTab from '$lib/components/TitleTab.svelte';
+   import { getPuzzleImageURL } from '$lib/supabase';
    export let content: IRebus
-
-   const imgUrl = new URL(`/src/lib/images/puzzles/rebus/${content.image}`, import.meta.url).href
 
    let solved: boolean = false
    let submitted: boolean = false
@@ -56,7 +69,7 @@
    <TitleTab {content}/>
 
    <div class="mx-auto w-full lg:w-1/2">
-      <img src="{imgUrl}" class="aspect-auto object-contain" alt="img">
+      <img src="{getPuzzleImageURL('rebus', content.image)}" class="aspect-auto object-contain" alt="img">
    </div>
    <h3>{content.question}</h3>
 
@@ -85,7 +98,7 @@
    {#if content.hints}
       <div class="w-full lg:w-1/2 mx-auto">
          <h1>คำใบ้</h1>
-         {#each content.hints.slice(0,numHints) as h, idx}
+         {#each content.hints?.slice(0,numHints) as h, idx}
             <div class="btn btn-outline btn-info">คำใบ้ที่ {idx+1}</div> <p>{h}</p>
          {/each}
          {#if numHints < content.hints.length}

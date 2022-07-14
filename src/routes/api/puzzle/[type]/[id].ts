@@ -1,9 +1,7 @@
 import { from } from '$lib/supabase';
 
 /**
- * Returns stats for 'boardgame', 'content', 'person', 'event', 'manufacturer', 'publisher', 'shop'
- * for now, simply return the number of entries for each category
- * ex. /api/boardgame
+ * Returns tye puzzle package to be displayed
  *
  * @param {null}
  * @return {object} array of objects
@@ -24,6 +22,34 @@ export async function get({ params }) {
 	return {
 		status: 200,
 		headers: { 'Content-Type': 'application/json' },
-		body: data
+		body: data[0]
+	};
+}
+
+
+/**
+ * check the answer for the requested puzzle
+ *
+ * @param {null}
+ * @return {object} array of objects
+ */
+/** @type {import('/api/puzzle/[type]/[id].ts').RequestHandler} */
+export async function post({ params }) {
+
+	const {type, id} = params;
+	let error
+	let data = [{result: 'incorrect', hint: 'no hint for you'}]
+
+	if(error) 
+		return {
+			status: 500,
+			headers: { 'Content-Type': 'application/json' },
+			body: error
+		};
+
+	return {
+		status: 200,
+		headers: { 'Content-Type': 'application/json' },
+		body: data[0]
 	};
 }

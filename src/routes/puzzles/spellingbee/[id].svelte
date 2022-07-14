@@ -148,8 +148,9 @@
       <div class="flex flex-row flex-wrap gap-2 align-center w-full justify-center p-4">
          {#each letters as l, idx (l)}
             <div 
-               class="border-2 w-20 h-20 btn btn-outline" 
+               class="border-2 w-20 h-20 btn btn-outline transition-transform" 
                class:btn-primary={answer.includes(l)}
+               class:scale-90={answer.includes(l)}
                on:click={()=>addLetter(l)} 
                in:fly={{y:10, delay:idx*300}}
                animate:flip={{duration:500}}

@@ -13,13 +13,14 @@
 <script lang=ts>
    import type {Leaderboard} from '$lib/interfaces'
    import {todayDateThaiString} from '$lib/utils/date'
+   import {getDailySpellingBee} from '$lib/data/puzzles/spellingbee'
 
    export let data: Leaderboard[]
    const date = new Date()
-   // const todayDate = date.toISOString()
-   // $: filteredData = data.filter(d=>d.puzzle_id)
-
-   $: sortedData = data.sort((a,b)=> a.score - b.score)
+   const todayDate = date.toISOString()
+   const id = getDailySpellingBee().id
+   $: sortedData = data.filter(d=>d.puzzle_id === id)
+      .sort((a,b)=> a.score - b.score)
 
    function timeToString(n: number) {
       const min = Math.floor(n/1000)
@@ -28,7 +29,10 @@
    }
 </script>
 
-<h1>ตารางอันดับ สะกดศัพท์ ประจำวันที่ {todayDateThaiString()}</h1>
+<a href="/puzzles/spellingbee">
+   <h1>ตารางอันดับ สะกดศัพท์ ประจำวันที่ {todayDateThaiString()}</h1>
+</a>
+
 <table class="table table-zebra mx-auto">
    <thead>
       <th>อันดับ</th>
@@ -40,7 +44,7 @@
          <tr>
             <td>{idx+1}</td>
             <td>{d.name}</td>
-            <td>{timeToString(d.score)}</td>
+            <td class="text-right">{timeToString(d.score)}</td>
          </tr>
       {/each}
    </tbody>

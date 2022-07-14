@@ -1,29 +1,31 @@
 <script lang=ts>
-   const crossUrl = new URL(`/src/lib/images/icons/crossword.png`, import.meta.url).href
-   const alphaUrl = new URL(`/src/lib/images/icons/alphabet.png`, import.meta.url).href
-   const rebusUrl = new URL(`/src/lib/images/icons/rebus.png`, import.meta.url).href
-   const beeUrl = new URL(`/src/lib/images/icons/spellingbee.png`, import.meta.url).href
+   import {getImageURL} from '$lib/supabase'
 
    const puzzleDescriptions = [
       {
          type: "rebus",
          description: "ทายคำจากภาพ",
-         icon: rebusUrl
+         icon: getImageURL('assets', 'rebus.png')
       },
       {
          type: "crossword",
          description: "ปริศนาอักษรไขว้",
-         icon: crossUrl
+         icon: getImageURL('assets', 'crossword.png')
       },
       {
          type: "alphabet",
          description: "ทายคำจากคำใบ้ โดยเปิดตัวอักษรให้น้อยที่สุด",
-         icon: alphaUrl
+         icon: getImageURL('assets', 'alphabet.png')
       },
       {
          type: "spellingbee",
          description: "หาคำ 7 ตัวอักษร",
-         icon: beeUrl
+         icon: getImageURL('assets', 'spellingbee.png')
+      },
+      {
+         type: "puzzlehunt",
+         description: "แก้ชุดปริศนา",
+         icon: getImageURL('assets', 'spellingbee.png')
       },
    ]
 

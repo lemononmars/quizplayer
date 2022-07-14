@@ -1,4 +1,4 @@
-import {spellingbee, numPuzzles} from '$lib/data/puzzles/spellingbee'
+import {getPuzzle, numPuzzles} from '$lib/data/puzzles/spellingbee'
 // import { getPuzzle } from '../../api'
 
 /** @type {import('./__types/[id]').RequestHandler} */
@@ -14,7 +14,7 @@ export async function get({params}) {
     };
   }
 
-  let content = spellingbee[id]
+  let content = getPuzzle(id)
   return {
     body: { content }
   };

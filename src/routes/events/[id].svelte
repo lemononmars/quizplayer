@@ -1,13 +1,15 @@
 <script lang=ts>
    import type {IEvent} from '$lib/interfaces'
-   export let content: IEvent
+   import {getImageURL} from '$lib/supabase'
+   import {getMD} from '$lib/data/events/md'
 
-   const imgUrl = new URL(`/src/lib/images/events/${content.image}`, import.meta.url).href
+   export let content: IEvent
+   const md = getMD(content.id)
 </script>
 
 <div class="flex flex-col gap-2">
    <div>
-      <img src="{imgUrl}" class="w-full h-60 object-cover" alt="img">
+      <img src="{getImageURL('events', content.image)}" class="w-full h-60 object-cover" alt="img">
    </div>
    <h1>{content.title}</h1>
    <div class="flex flex-row gap-2 mx-auto items-center">
@@ -19,5 +21,8 @@
       {/if}
    </div>
    <div class="divider"></div>
-   <pre class="whitespace-pre-wrap text-left">{content.content}</pre>
+</div>
+
+<div class="text-left">
+   <svelte:component this={md}/>
 </div>

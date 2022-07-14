@@ -22,7 +22,7 @@
 
 	a {
 		@apply link link-primary;
-		@apply no-underline hover:underline focus:outline-none focus:underline;
+		@apply no-underline hover:no-underline focus:outline-none focus:underline;
 	}
 
 	h1 {

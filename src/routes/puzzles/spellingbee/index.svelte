@@ -1,9 +1,8 @@
 <script lang=ts>
-   import { goto } from '$app/navigation';
    import {username} from '$lib/store'
 
    import type {ISpellingBee} from '$lib/interfaces'
-   import {search, isUpper, isLower, getSubWords} from '$lib/utils/thaiwords'
+   import {search, isUpper, isLower} from '$lib/utils/thaiwords'
    import {todayDateThaiString} from '$lib/utils/date'
    import {XCircleIcon, PlayCircleIcon} from 'svelte-feather-icons'
 
@@ -13,18 +12,13 @@
    export let content: ISpellingBee
 
    let answer: string = ''
-   let pastAnswers: string[] = []
    interface SubmissionLog {
       answer: string
       response: string
    }
-   let logs: SubmissionLog[] = []
-
-   let solutions: string[] = getSubWords(content.word, false)
+   let log: SubmissionLog = {answer: '', response: ''}
    let letters = content.word.split("")
-   solutions = solutions.filter(s => s.length >= 3)
    letters = shuffle(letters)
-   let solved = new Array(solutions.length).fill(false)
 
    let openModal: boolean = false
 
@@ -32,53 +26,39 @@
       if(answer.length == 0)
          return
 
-      if(pastAnswers.includes(answer)) {
-         logs = [{
-            answer, response: 'duplicate'
-         }, ...logs]
-         triggleWiggle()
-         answer = ''
-         return
-      }
-
-      if(answer.length < 3) {
-         logs = [{
-            answer, response: 'short'
-         }, ...logs]
+      if (!search(answer)) {
+         log = {
+            answer, response: 'wordless'
+         }
          triggleWiggle()
          answer = ''
          return
       }
 
       if(answer.split("").some(l => !letters.includes(l))) {
-         logs = [{
+         log = {
             answer, response: 'illegal'
-         }, ...logs]
+         }
          triggleWiggle()
          answer = ''
          return
       }
 
-      if (!search(answer)) {
-         logs = [{
-            answer, response: 'wordless'
-         }, ...logs]
+      if(answer.length < 7) {
+         log = {
+            answer, response: 'short'
+         }
          triggleWiggle()
          answer = ''
          return
       }
 
-      pastAnswers = [...pastAnswers, answer]
-      if(solutions.includes(answer)) {
-         solved[solutions.indexOf(answer)] = true
-         logs = [{
+      if(answer == content.word) {
+         log = {
             answer, response: 'correct'
-         }, ...logs]
-         triggerFlash()
-      }
-
-      if(answer.length == content.word.length) {
+         }
          clearInterval(timer)
+         isFinished = true
          openModal = true
       }
 
@@ -104,8 +84,12 @@
    }
 
    function giveUp() {
-      solved = new Array(solutions.length).fill(true)
       clearInterval(timer)
+      isFinished = true
+      log = {
+         answer: content.word,
+         response: 'correct'
+      }
    }
 
    function addLetter(l: string) {
@@ -116,22 +100,17 @@
    }
 
    let isWiggle: boolean = false
-   let isFlashing: boolean = false
 
    function triggleWiggle() {
       isWiggle = true
       setTimeout(()=>isWiggle=false, 1000)
    }
 
-   function triggerFlash() {
-      isFlashing = true
-      setTimeout(()=>isFlashing=false, 200)
-   }
-
    let time: number = 0
    $: timeString = (time < 60000 ? '' : Math.floor(time/60000) + ' นาที ') + (Math.floor(time/1000) % 60) + ' วินาที'
    let timer: string|number|NodeJS.Timeout|undefined
    let isPlaying: boolean = false
+   let isFinished: boolean = false
 
    function play() {
       isPlaying = true
@@ -164,7 +143,7 @@
 
 <div class="flex flex-col gap-2 h-full lg:h-auto relative overflow-y-clip lg:overflow-y-none">
    <h1>สะกดศัพท์ ประจำวันที่ {todayDateThaiString()}</h1>
-   <div class="sticky top-0 lg:top-20 flex flex-col z-20 bg-info-content h-1/2 lg:h-auto">
+   <div class="sticky top-0 lg:top-20 flex flex-col z-20 bg-info-content lg:h-auto py-20">
       {#if isPlaying}
          <div class="flex flex-row flex-wrap gap-2 align-center w-full justify-center p-4">
             {#each letters as l, idx (l)}
@@ -188,27 +167,47 @@
       {/if}
 
       <div class="flex flex-row flex-wrap justify-center my-2 gap-4 w-full px-4">
-         <div class="input-group w-80" class:wiggle={isWiggle}>
-            <div class="btn btn-warning" on:click={()=>letters = shuffle(letters)}>สลับ</div>
-            <input class="input input-bordered text-3xl w-48 transition-colors" type="text" bind:value={answer} class:bg-primary={isFlashing}>
-            <div class="-translate-x-8 w-0 my-auto" class:hidden={answer === ''} on:click={()=>answer = ''}>
-               <XCircleIcon size=20/>
+         
+         {#if isPlaying}
+            <div class="input-group w-80" class:wiggle={isWiggle}>
+               <div class="btn btn-warning" on:click={()=>letters = shuffle(letters)}>สลับ</div>
+               <input class="input input-bordered text-3xl w-48 transition-colors" type="text" bind:value={answer}>
+               <div class="-translate-x-8 w-0 my-auto" class:hidden={answer === ''} on:click={()=>answer = ''}>
+                  <XCircleIcon size=20/>
+               </div>
+               <div class="btn btn-primary" on:click={checkAnswer}>ส่ง</div>
             </div>
-            <div class="btn btn-primary" on:click={checkAnswer}>ส่ง</div>
-         </div>
-         <div class="btn btn-error" on:click={giveUp}>เปิดเฉลย</div>
+            <div class="btn btn-error" on:click={giveUp}>เปิดเฉลย</div>
+         {/if}
       </div>
-      <div>{timeString}</div>
+      {#if isPlaying}
+         <div>{timeString}</div>
+      {/if}
+      <div class="text-center">
+         {#if log.response}
+            {#if log.response === 'correct'}
+               <p class="text-success">{log.answer} ✔️ เป็นคำตอบที่ถูกต้อง</p>
+            {:else if log.response === 'illegal'}
+               <p class="text-error">{log.answer} ❌ มีตัวอักษรที่ห้ามใช้</p>
+            {:else if log.response === 'wordless'}
+               <p class="text-error">{log.answer} ❌ ไม่อยู่ในพจนานุกรม</p>
+            {:else if log.response === 'short'}
+               <p class="text-error">{log.answer} ❌ ใช้ตัวอักษรไม่ครบ</p> 
+            {/if}
+         {/if}
+   </div>
    </div>
    
-   <div>
-      <a href="/puzzles/spellingbee/random">
-         <div class="btn btn-outline">สุ่มข้อใหม่</div>
-      </a>
-      <a href="/puzzles/spellingbee/leaderboard">
-         <div class="btn btn-outline">ดูตารางอันดับของวันนี้</div>
-      </a>
-   </div>
+   {#if isFinished}
+      <div>
+         <a href="/puzzles/spellingbee/random">
+            <div class="btn btn-primary">สุ่มข้อใหม่</div>
+         </a>
+         <a href="/puzzles/spellingbee/leaderboard">
+            <div class="btn btn-outline">ดูตารางอันดับของวันนี้</div>
+         </a>
+      </div>
+   {/if}
 </div>
 
 <!-- Put this part before </body> tag -->
@@ -216,14 +215,17 @@
 <!-- svelte-ignore a11y-label-has-associated-control -->
 <label class="modal cursor-pointer w-screen" class:modal-open={openModal}>
    <label class="modal-box relative" for="">
-      <h3 class="text-xl font-bold p-2">"ใช้ตัวอักษรครบแล้ว 🎉</h3>
+      <h3 class="text-xl font-bold p-2">เจอคำศัพท์ประจำวันแล้ว 🎉</h3>
       <p>ใช้เวลาทั้งหมด {timeString}</p>
       <div class="divider"></div>
       <div class="my-4">
          <p>กรอกชื่อเพื่อบันทึกเวลา</p>
          <input type="text" class="input input-bordered" bind:value={$username}>
       </div>
-      <div class="btn btn-block btn-outline" on:click={addToLeaderboard} class:loading={isSubmitting}>บันทึก</div>
+      <div class="flex flex-row justify-center gap-4">
+         <div class="btn btn-wide btn-outline btn-success" on:click={addToLeaderboard} class:loading={isSubmitting}>บันทึก</div>
+         <div class="btn btn-outline btn-error" on:click={()=>openModal = false} >ปิด</div>
+      </div>
    </label>
 </label>
 

@@ -8,27 +8,43 @@ export const events: IEvent[] = [
       date: "2020-01-25",
       image: 'event01.png',
       tags: ["event", "competition"],
-      content: `💣 เวลา 99 นาทีกับภารกิจกู้ระเบิด จะทันหรือไม่? 💣
-
-Code Breaker : Exploding Countdown เกมล่าปริศนา ขอท้านักไขใช้พลังสมอง ประลองกับเวลา วิ่งหาเบาะแสถอดรหัส
-
-เปิดรอบเดียวเท่านั้น!
-🔎 วันเสาร์ที่ 25 มกราคม 2020
-🔎 เวลา 13.00 - 15.00 น.
-
-🔎 ณ Mansion 7 (ตีรันฟันทอย บอร์ดเกม คาเฟ่ - Tea Run Fun Toy Board Game Cafe)
-(แผนที่ https://goo.gl/maps/9fP1AtUkiwmAvuqcA)
-
-🔎 ค่าสมัคร 300 บาทต่อคน`,
+      content: 'event01.md',
    },
    {
       type: "event",
       id: 2,
-      title: "Thailand Board Game Show 2021",
-      date: "2021-11-20",
+      title: "Thailand Board Game Show 2020",
+      date: "2020-11-20",
       image: 'event02.jpg',
       tags: ["event", "kit"],
-      content: "กิจกรรมแก้ปริศนาในงาน Thailand Board Game Show 2021",
+      content: 'event02.md',
+   },
+   {
+      type: "event",
+      id: 3,
+      title: "Thailand Board Game Show 2021",
+      date: "2021-11-26",
+      image: 'event03.jpg',
+      tags: ["event", "kit"],
+      content: 'event03.md',
+   },
+   {
+      type: "event",
+      id: 4,
+      title: "Unlock! Online Challenge",
+      date: "2021-01-08",
+      image: 'event04.jpg',
+      tags: ["event", "online"],
+      content: 'event04.md',
+   },
+   {
+      type: "event",
+      id: 5,
+      title: "Puzzle Academy Chapter 01",
+      date: "2022-04-30",
+      image: 'event05.jpg',
+      tags: ["event", "online", "training"],
+      content: 'event05.md',
    },
    
 ]

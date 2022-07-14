@@ -5,7 +5,6 @@ export default [
       type: 'crossword',
       id: 1,
       title: "Cryptic clue 1",
-      image: "crossword.png",
       date: "2022-01-01",
       tags: ["cryptic", "crossword"],
       size: [5,5],
@@ -14,10 +13,9 @@ export default [
    {
       type: 'crossword',
       id: 2,
-      title: "Shortest crossword ever",
+      title: "small grid",
       date: "2022-07-02",
-      image: "crossword.png",
-      tags: ["cryptic", "crossword"],
+      tags: ["crossword"],
       size: [2,2],
       clues: [
          {
@@ -51,8 +49,7 @@ export default [
       id: 3,
       title: "BIG GRID",
       date: "2022-07-02",
-      image: "crossword.png",
-      tags: ["cryptic", "crossword"],
+      tags: ["crossword"],
       size: [10,10],
       clues: [
          {

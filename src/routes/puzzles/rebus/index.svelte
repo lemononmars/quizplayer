@@ -1,3 +1,17 @@
+<script context=module lang=ts>
+   export async function load({fetch}) {
+
+      const res = await fetch('/api/puzzle/rebus')
+      const puzzles = await res.json()
+      return {
+         props: {
+            puzzles
+         }
+      }
+   }
+
+</script>
+
 <script lang=ts>
    import {dateToThaiString} from '$lib/utils/date'
    import type { IRebus } from '$lib/interfaces';

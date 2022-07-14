@@ -46,4 +46,20 @@ export interface ISpellingBee {
    word: string
 }
 
-export type PuzzleType = 'alphabet' | 'rebus' | 'crossword'
+export interface IPuzzleHuntSingle {
+   index: number,
+   title: string,
+   file: string,
+   hints: string[],
+   solution?: string
+}
+
+export interface IPuzzleHunt extends IContent{
+   type: 'puzzlehunt',
+   id: number,
+   image?: string,
+   title: string,
+   puzzles: IPuzzleHuntSingle[]
+}
+
+export type PuzzleType = 'alphabet' | 'rebus' | 'crossword' | 'puzzlehunt'

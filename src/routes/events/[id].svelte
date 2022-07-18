@@ -8,7 +8,7 @@
    let md: any
 
    onMount(async() =>{
-      md = await getMD(content.id)
+      md = await getMD(content.content)
    })
    
 </script>

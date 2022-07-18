@@ -1,9 +1,5 @@
-const NUM_EVENTS = 5
+export async function getMD(fileName: string){
 
-export async function getMD(id: number){
-   if(id > 5)
-      return {}
-      
-   let md = await import(`./event0${id}.md`)
+   let md = await import(`./${fileName}`)
    return md.default
 }

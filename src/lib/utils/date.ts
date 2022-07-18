@@ -12,6 +12,7 @@ export function dateToThaiString(date: string) {
 }
 
 export function todayDateThaiString() {
-   const d = new Date()
+   // GMT+7 Bangkok time 
+   const d = new Date( Date.now() + 7 * 60 * 60 * 1000 )
    return dateToThaiString(d.toISOString())
 }

@@ -89,7 +89,7 @@
             <p>{submissionResponse.result} {submissionResponse.hint || ''}</p>
          {/if}
       </div>
-      <iframe src="{currentPuzzle.file}/preview" width="480" height="720" title="file" class="mx-auto"/>
+      <iframe src="{currentPuzzle.file}/preview" width="600" height="800" title="file" class="mx-auto max-h-screen"/>
       <div class="divider"></div>
       <h3>คำใบ้</h3>
       {#each currentPuzzle.hints as h, idx}

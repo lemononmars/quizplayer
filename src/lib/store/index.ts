@@ -1,4 +1,5 @@
 import { localStore } from './localStore';
 
 export const username = localStore('username', 'code breaker');
-export const adventureProgress = localStore('adventure', 'start');
+export const adventureLevel = localStore('level', '1');
+export const adventureCode = localStore('code', 'start');

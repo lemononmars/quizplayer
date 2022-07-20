@@ -15,7 +15,7 @@
 
 <div class="flex flex-col gap-2">
    <div>
-      <img src="{getImageURL('events', content.image)}" class="w-full h-60 object-cover" alt="img">
+      <img src="{getImageURL('events', content.image)}" class="w-full h-32 lg:h-60 object-cover" alt="img">
    </div>
    <h1>{content.title}</h1>
    <div class="flex flex-row gap-2 mx-auto items-center">
@@ -30,7 +30,7 @@
 </div>
 
 {#if md}
-<div class="text-left">
+<div class="text-left px-4">
    <svelte:component this={md}/>
 </div>
 {/if}

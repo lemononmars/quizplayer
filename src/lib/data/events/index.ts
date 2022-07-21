@@ -8,7 +8,7 @@ export const events: IEvent[] = [
       date: "2020-01-25",
       image: 'event01.png',
       tags: ["event", "competition"],
-      content: 'event01',
+      content: '01',
    },
    {
       type: "event",
@@ -17,7 +17,7 @@ export const events: IEvent[] = [
       date: "2020-11-20",
       image: 'event02.jpg',
       tags: ["event", "kit"],
-      content: 'event02',
+      content: '02',
    },
    {
       type: "event",
@@ -26,7 +26,7 @@ export const events: IEvent[] = [
       date: "2021-11-26",
       image: 'event03.jpg',
       tags: ["event", "kit"],
-      content: 'event04',
+      content: '04',
    },
    {
       type: "event",
@@ -35,7 +35,7 @@ export const events: IEvent[] = [
       date: "2021-01-08",
       image: 'event04.jpg',
       tags: ["event", "online"],
-      content: 'event03',
+      content: '03',
    },
    {
       type: "event",
@@ -44,7 +44,15 @@ export const events: IEvent[] = [
       date: "2022-04-30",
       image: 'event05.jpg',
       tags: ["event", "online", "training"],
-      content: 'event05',
+      content: '05',
    },
-   
+   {
+      type: "event",
+      id: 6,
+      title: "Bangkok Train Adventure",
+      date: "2022-12-31",
+      image: 'event06.jpg',
+      tags: ["event", "kit", "field"],
+      content: '06',
+   },
 ]

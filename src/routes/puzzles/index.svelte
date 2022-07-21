@@ -27,11 +27,11 @@
          description: "แก้ชุดปริศนา",
          icon: getImageURL('assets', 'puzzlehunt.png')
       },
-      {
-         type: "adventure",
-         description: "ไต่",
-         icon: getImageURL('assets', 'adventure.png')
-      },
+      // {
+      //    type: "adventure",
+      //    description: "ตะลุยด่านไขรหัส",
+      //    icon: getImageURL('assets', 'adventure.png')
+      // },
    ]
 
 </script>

@@ -49,7 +49,8 @@ export const events: IEvent[] = [
    {
       type: "event",
       id: 6,
-      title: "Bangkok Train Adventure",
+      redirect: 'train',
+      title: "Bangkok Train Puzzle Adventure",
       date: "2022-12-31",
       image: 'event06.jpg',
       tags: ["event", "kit", "field"],

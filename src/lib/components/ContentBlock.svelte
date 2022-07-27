@@ -8,7 +8,7 @@
    const imgURL = getImageURL('events', content.image)
 </script>
 
-<a href="/{url}/{content.id}">
+<a href="/{url}/{content.redirect || content.id}">
    <div class="card card-side bg-base-100 shadow-xl border-2 hover:scale-105 transition-transform">
       <figure><img src="{imgURL}" alt="event" class="h-32 aspect-square object-scale-down"></figure>
       <div class="card-body">

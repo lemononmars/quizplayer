@@ -9,6 +9,7 @@ export interface IContent {
 
 export interface IEvent extends IContent {
    type: 'event',
+   redirect?: string,
    image: string,
    content: string,
 }

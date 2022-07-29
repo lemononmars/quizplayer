@@ -1,9 +1,11 @@
 <script lang=ts>
    import logo from '$lib/images/logo.png'
-   import {HomeIcon, CalendarIcon, PlayCircleIcon, InfoIcon} from 'svelte-feather-icons'
+   import {HomeIcon, CalendarIcon, PlayCircleIcon, InfoIcon, ChevronDownIcon, ChevronUpIcon} from 'svelte-feather-icons'
    const icons = [HomeIcon, CalendarIcon, PlayCircleIcon, InfoIcon]
    const menus = ['Home', 'Events', 'Puzzles', 'About']
    const links = ['', 'events', 'puzzles', 'about']
+
+   let hideBar = false
 </script>
 
 <div class="navbar w-screen hidden lg:flex bg-base-content h-10 py-2">
@@ -24,7 +26,11 @@
    </div>
 </div>
 
-<div class="navbar w-screen flex lg:hidden bg-base-content h-20 py-2">
+<!-- bottom nav bar for mobile-->
+<div 
+   class="navbar w-screen flex lg:hidden bg-base-content h-20 py-2 relative transition-transform"
+   class:translate-y-20={hideBar}
+>
    <div class="navbar-center w-full">
       <div class="flex flex-row justify-around w-full mx-auto">
          {#each menus as _, idx}
@@ -38,6 +44,16 @@
                </div>
             </a>
          {/each}
+      </div>
+   </div>
+
+   <div class="absolute top-0 left-0 -translate-y-1/2">
+      <div class="btn btn-xs bg-base-content text-primary" on:click={()=>hideBar = !hideBar}>
+         {#if hideBar}
+            <ChevronUpIcon/>
+         {:else}
+            <ChevronDownIcon/>
+         {/if}
       </div>
    </div>
 </div>

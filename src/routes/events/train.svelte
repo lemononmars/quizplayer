@@ -5,19 +5,27 @@
    import {default as IntObs} from "svelte-intersection-observer";
    import {fly} from 'svelte/transition'
 
+   import {MRTLogo, BTSLogo, CBLogo, GameLabLogo} from '$lib/images/index'
+
    let element: any
    let intersecting: boolean
 
    let answer: string = ''
+   let response: string = ''
+   let solved: boolean = false
    let solution = 'หอม'
-   let solved = false
    let openModal = false
 
    function checkAnswer() {
-      if(answer.toUpperCase() === solution) {
+      if(solved) return
+
+      if(answer.toUpperCase() === solution){
          solved = true
          openModal = true
+         response = answer + ' เป็นคำตอบที่ถูกต้อง! 🎉'
       }
+      else
+         response = answer + ' ยังไม่ถูก'
       answer = ''
    }
 
@@ -26,13 +34,19 @@
 		checkAnswer()
 	}
 
-   function scrollBottom() {
-		window.scroll({ top: window.innerHeight + 200, behavior: 'smooth' });
-	}
-
    function scrollTop() {
 		window.scroll({ top: 0, behavior: 'smooth' });
 	}
+
+   const sections = [
+      {id: 'introduction', title: 'แนะนำ'},
+      {id: 'info', title: 'ข้อมูล'},
+      {id: 'purchase', title: 'วิธีซื้อ'},
+      {id: 'howtoplay', title: 'วิธีเล่น'},
+      {id: 'test', title: 'ทดลอง'},
+      {id: 'faq', title: 'คำถามที่พบบ่อย'},
+      {id: 'partners', title: 'สนับสนุนโดย'},
+   ]
 </script>
 
 <h1>Bangkok Train Puzzle Adventure</h1>
@@ -122,7 +136,7 @@ The best way to get around is, of course, with Tokyo Metro.
    <div class="flex flex-col justify-center w-72 h-72 gap-2">
       <h3>1. ซื้อชุดปริศนา</h3>
       <ShoppingCartIcon size=5x class="mx-auto"/>
-      <p><a href="./train#howtobuy">ที่นี่</a></p>
+      <p><a href="./train#purchase">ที่นี่</a></p>
    </div>
    <div class="flex flex-col justify-center w-72 h-72 gap-2">
       <h3>2. แก้ปริศนา</h3>
@@ -153,16 +167,22 @@ The best way to get around is, of course, with Tokyo Metro.
    <input class="input input-bordered" type="text" bind:value={answer} on:keydown={handleKeyPress}>
    <div class="btn btn-primary " on:click={checkAnswer}>ตรวจคำตอบ</div>
 </div>
+{#if solved}
+   <p class="text-success">{response}</p>
+{:else}
+   <p class="text-error">{response}</p>
+{/if}
 
 <div class="bg-success-content py-4 my-4 px-4" id="faq">
    <h2>คำถามที่พบบ่อย</h2>
+</div>
 
    <div tabindex="0" class="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box">
       <div class="collapse-title text-xl font-medium bg-info-content">
         เล่นข้ามวันได้หรือเปล่า?
       </div>
       <div class="collapse-content"> 
-        <p class="my-4">ได้ก็บ้าแล้ว!</p>
+        <p class="my-4">ได้! แต่เพื่อประสบการณ์ท่องเที่ยวที่ต่อเนื่องและราบรื่น เราแนะนำให้เล่นจบภายในวันเดียวกัน</p>
       </div>
    </div>
 
@@ -180,7 +200,7 @@ The best way to get around is, of course, with Tokyo Metro.
         เล่นซ้ำได้หรือเปล่า
       </div>
       <div class="collapse-content"> 
-        <p class="my-4">ได้ แต่โจทย์เดิม</p>
+        <p class="my-4">ได้ แต่เพื่อ?</p>
       </div>
    </div>
 
@@ -192,6 +212,16 @@ The best way to get around is, of course, with Tokyo Metro.
         <p class="my-4">ติดต่อที่ร้าน</p>
       </div>
    </div>
+
+
+<div class="bg-success-content py-4 my-4" id="partners">
+   <h2>ผู้สนับสนุน</h2>
+</div>
+<div class="flex flex-row justify-around">
+   <img src={CBLogo} alt="cb logo" class="w-20 aspect-square"/>
+   <a href="//https://metro.bemplc.co.th/MRT-System-Map" target="_blank"><img src={MRTLogo} alt="mrt logo" class="w-20 aspect-square"/></a>
+   <a href="//https://www.bts.co.th/" target="_blank"><img src={BTSLogo} alt="bts logo" class="w-20 aspect-square"/></a>
+   <a href="//https://http://www.gamelabthailand.com/" target="_blank"><img src={GameLabLogo} alt="bts logo" class="w-20 aspect-square"/></a>
 </div>
 
 <div class="fixed bottom-0 right-0 m-4 hover:-translate-y-2 transition-transform">
@@ -200,6 +230,16 @@ The best way to get around is, of course, with Tokyo Metro.
    </div>
 </div>
 
+<div class="hidden lg:block fixed left-0 top-1/2 -translate-y-1/2 m-4">
+   <div class="bg-base-100 border-2 border-base-content flex flex-col p-2 text-left"> 
+      {#each sections as s}
+         <a href="./train#{s.id}">{s.title}</a>
+      {/each}
+   </div>
+</div>
+
+<!-- just a footer-->
+<div class="h-20"></div>
 
 <input type="checkbox" id="submit-modal" class="modal-toggle"/>
 <!-- svelte-ignore a11y-label-has-associated-control -->
@@ -213,5 +253,9 @@ The best way to get around is, of course, with Tokyo Metro.
 <style>
    h2 {
       margin: top 2rem
+   }
+
+   html {
+      scroll-behavior: smooth;
    }
 </style>

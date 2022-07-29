@@ -1,9 +1,11 @@
 <script lang=ts>
    import type { IPuzzleCrossword, CrosswordClue } from "$lib/interfaces";
    import {splitWord, isLegal, appendable} from "$lib/utils/thaiwords"
+   import KeyboardLayout from '$lib/components/KeyboardLayout.svelte'
 
    import TitleTab from "$lib/components/TitleTab.svelte";
    import {onMount} from 'svelte'
+   import { ChevronLeftIcon, ChevronRightIcon } from "svelte-feather-icons";
 
    interface Clue extends CrosswordClue {
       index?: number,
@@ -74,7 +76,6 @@
       .map(_ => (Array(gridWidth).fill('')
          .map(_ => null)
       ))
-   let hiddenInputElement: HTMLElement
 
    // Tranpose the matrix
    clues.forEach(c => {
@@ -110,7 +111,7 @@
       const acrossMult = 1 - downMult
       splitWord(c.answer).forEach((_, idx) =>{
          if(!grid[c.position[0] + idx * acrossMult][c.position[1] + idx * downMult].locked)
-            gridElem[c.position[0] + idx * acrossMult][c.position[1] + idx * downMult].classList.toggle('bg-info')
+            gridElem[c.position[0] + idx * acrossMult][c.position[1] + idx * downMult].classList.toggle('bg-info-content')
       })
    }
 
@@ -134,8 +135,6 @@
       toggleHighlight(newClue)
       activeClue = newClue
       changeActiveCell(position)
-
-      hiddenInputElement.focus()
    }
 
    function nextCell() {
@@ -151,6 +150,19 @@
             nextClue()
    }
 
+   function prevCell() {
+      if(activeClue.direction === 'down') 
+         if(activeCell[1] > 0 && grid[activeCell[0]][activeCell[1]-1].solution !== '')
+            changeActiveCell([activeCell[0], activeCell[1] - 1])
+         else
+            prevClue()
+      else 
+         if(activeCell[0] > 0 && grid[activeCell[0]-1][activeCell[1]].solution !== '')
+            changeActiveCell([activeCell[0] - 1, activeCell[1]])
+         else
+            prevClue()
+   }
+
    function moveTo(x: number,y: number) {
       if(activeCell[1] + y < gridHeight && activeCell[1] + y >= 0 
          && activeCell[0] + x < gridWidth && activeCell[0] + x >= 0 
@@ -161,6 +173,11 @@
 
    function nextClue() {
       const nextActiveClue = clues[(getClueIndex(activeClue) + 1) % clues.length]
+      selectClue(nextActiveClue)
+   }
+
+   function prevClue() {
+      const nextActiveClue = clues[(getClueIndex(activeClue) + clues.length - 1) % clues.length]
       selectClue(nextActiveClue)
    }
 
@@ -197,23 +214,45 @@
          return 
       
       // modifying cells
-      if(appendable(grid[activeCell[0]][activeCell[1]].input, event.key))
-         grid[activeCell[0]][activeCell[1]].input += event.key
-      else if(isLegal(event.key)) {
-         grid[activeCell[0]][activeCell[1]].input = event.key
+      if(event.code === 'Backspace') {
+         if(grid[activeCell[0]][activeCell[1]].input)
+            grid[activeCell[0]][activeCell[1]].input = ''
+         else
+            prevCell()
       }
-      else if(event.code === 'Backspace')
-         grid[activeCell[0]][activeCell[1]].input = ''
+      else
+         modifyCell(event.key)
       // else 
       //    alert("ลืมเปลี่ยนภาษาหรือเปล่า?")
+   }
 
+   function modifyCell(letter: string) {
+      if(appendable(grid[activeCell[0]][activeCell[1]].input, letter))
+         grid[activeCell[0]][activeCell[1]].input += letter
+      else if(isLegal(letter)) {
+         if(grid[activeCell[0]][activeCell[1]].input)
+            nextCell()
+         grid[activeCell[0]][activeCell[1]].input = letter
+      }
       checkAnswer(activeCell)
    }
 
+   // event from KeyboardLayout component
+   function handleType(event: any){
+      const letter = event.detail
+      if(letter === '⬅')
+         if(grid[activeCell[0]][activeCell[1]].input)
+            grid[activeCell[0]][activeCell[1]].input = ''
+         else
+            prevCell()
+      else
+         modifyCell(letter)
+   }
+
    function changeActiveCell(position: Cell){
-      gridElem[activeCell[0]][activeCell[1]].classList.remove('border-primary-content', 'animate-pulse')
+      gridElem[activeCell[0]][activeCell[1]].classList.remove('bg-warning-content', 'animate-pulse')
       activeCell = [position[0], position[1]]
-      gridElem[activeCell[0]][activeCell[1]].classList.add('border-primary-content', 'animate-pulse')
+      gridElem[activeCell[0]][activeCell[1]].classList.add('bg-warning-content', 'animate-pulse')
    }
 
    function checkAnswer(position: Cell){
@@ -243,8 +282,9 @@
          solvedClues[getClueIndex(c)] = true
          splitWord(c.answer).forEach((_, idx) =>{
             grid[c.position[0] + idx * acrossMult][c.position[1] + idx * downMult].locked = true
-            gridElem[c.position[0] + idx * acrossMult][c.position[1] + idx * downMult].classList.remove('bg-info')
+            gridElem[c.position[0] + idx * acrossMult][c.position[1] + idx * downMult].classList.remove('bg-info-content')
          })
+         nextClue()
       }
    }
 </script>
@@ -253,7 +293,6 @@
 
 <TitleTab {content}/>
 
-<input type="text" bind:this={hiddenInputElement} class="block lg:hidden mx-auto w-10">
 <div class="flex flex-col lg:flex-row mt-10">
    <div class="text-center w-full lg:w-1/2 ">
       <div class="flex flex-col">
@@ -266,13 +305,13 @@
                      <div class="relative {sizeStr}" on:click={()=>selectPosition([cidx, ridx])}>
                         <div 
                            class="w-full h-full border-2 text-center grid place-content-center"
-                           class:bg-success={grid[cidx][ridx]?.locked}
+                           class:bg-success-content={grid[cidx][ridx]?.locked}
                            bind:this={gridElem[cidx][ridx]}
                         >
                            <p 
                               class="text-base-content {letterSize}"
                               class:font-bold={grid[cidx][ridx]?.locked}
-                              class:text-success-content={grid[cidx][ridx]?.locked}
+                              class:text-success={grid[cidx][ridx]?.locked}
                               >{grid[cidx][ridx].input}</p
                            >
                         </div>
@@ -287,11 +326,19 @@
             </div>
          {/each}
       </div>
-      <h1 class="mx-auto">{activeClue.index}) {activeClue.clue}</h1>
+      <div class="flex flex-row justify-between items-center">
+         <div class="btn" on:click={prevClue}>
+            <ChevronLeftIcon/>
+         </div>
+         <h1 class="mx-auto">{activeClue.index}) {activeClue.clue}</h1>
+         <div class="btn" on:click={nextClue}>
+            <ChevronRightIcon/>
+         </div>
+      </div>
    </div>
-   <div class="text-left w-full lg:w-1/2 p-4 h-80 lg:h-full overflow-y-auto">
+   <div class="hidden lg:block text-left w-full lg:w-1/2 p-4 h-full overflow-y-auto">
       <h3>แนวตั้ง</h3>
-      <ul>
+      <ul class="list-none">
       {#each clues as c, idx} 
          {#if c.direction === 'down'}
             <li class:bg-neutral-content={activeClue.index == c.index && activeClue.direction === 'down'} class="bg-opacity-20">
@@ -303,7 +350,7 @@
       {/each}
       </ul>
       <h3>แนวนอน</h3>
-      <ul>
+      <ul class="list-none">
       {#each clues as c, idx}
          {#if c.direction === 'across'}
             <li class:bg-neutral-content={activeClue.index == c.index && activeClue.direction === 'across'} class="bg-opacity-20">
@@ -314,6 +361,10 @@
          {/if}
       {/each}
       </ul>
+   </div>
+
+   <div class="block lg:hidden">
+      <KeyboardLayout on:type={handleType}/>
    </div>
 </div>
 

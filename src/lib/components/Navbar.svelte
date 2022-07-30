@@ -1,14 +1,19 @@
 <script lang=ts>
    import logo from '$lib/images/logo.png'
-   import {HomeIcon, CalendarIcon, PlayCircleIcon, InfoIcon, ChevronDownIcon, ChevronUpIcon} from 'svelte-feather-icons'
+   import {HomeIcon, CalendarIcon, PlayCircleIcon, InfoIcon, ChevronDownIcon, ChevronUpIcon, SettingsIcon} from 'svelte-feather-icons'
+   import {username} from '$lib/store'
+
    const icons = [HomeIcon, CalendarIcon, PlayCircleIcon, InfoIcon]
    const menus = ['Home', 'Events', 'Puzzles', 'About']
    const links = ['', 'events', 'puzzles', 'about']
 
    let hideBar = false
+   let openModal = false
+
+   let newUsername = ''
 </script>
 
-<div class="navbar w-screen hidden lg:flex bg-base-content h-10 py-2">
+<div class="navbar w-screen hidden lg:flex bg-success-content h-10 py-2">
    <div class="navbar-start">
       <a href="/">
          <img class="h-12 aspect-square hover:animate-spin" src={logo} alt="logo">
@@ -22,7 +27,9 @@
       {/each}
    </div>
    <div class="navbar-end">
-      Hii
+      <div on:click={()=>openModal = true}>
+         <SettingsIcon size=2x />
+      </div>
    </div>
 </div>
 
@@ -57,3 +64,17 @@
       </div>
    </div>
 </div>
+
+<!-- Put this part before </body> tag -->
+<input type="checkbox" id="submit-modal" class="modal-toggle"/>
+<!-- svelte-ignore a11y-label-has-associated-control -->
+<label class="modal cursor-pointer w-screen" class:modal-open={openModal}>
+   <label class="modal-box relative" for="">
+      <h1>ตั้งค่า</h1>
+      <div class="grid grid-cols-2">
+         <h3 class="text-xl font-bold p-2">ชื่อ</h3>
+         <input class="input input-bordered" type="text" bind:value={$username}>
+      </div>
+      <div class="btn btn-success mx-auto" on:click={()=>openModal = false}>บันทึก</div>
+   </label>
+</label>

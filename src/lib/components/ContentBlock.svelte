@@ -1,11 +1,11 @@
 <script lang=ts>
    import type {IEvent} from '$lib/interfaces'
-   import {getImageURL} from '$lib/supabase'
+   import {getImageURL, getPuzzleImageURL} from '$lib/supabase'
    import {dateToThaiString} from '$lib/utils/date'
    export let content: IEvent
 
    const url = content.type === 'event' ? 'events': 'puzzles/' + content.type
-   const imgURL = getImageURL('events', content.image)
+   const imgURL = content.type === 'event' ? getImageURL('events', content.image) : getPuzzleImageURL(content.type, content.image)
 </script>
 
 <a href="/{url}/{content.redirect || content.id}">

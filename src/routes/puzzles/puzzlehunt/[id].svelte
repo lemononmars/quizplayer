@@ -62,7 +62,14 @@
       answer = ''
       submissionResponse = null
    }
+
+   function handleKeyPress(event: KeyboardEvent) {
+		if (event.code != "Enter") return;
+		checkAnswer()
+	}
 </script>
+
+<svelte:body on:keypress={handleKeyPress}/>
 
 <div class="flex flex-col gap-2 justify-content">
    <h1>{title}</h1>
@@ -81,12 +88,16 @@
    <div class="flex flex-col gap-2 justify-content">
       <h2>ข้อที่ {currentPuzzle.index} - {currentPuzzle.title}</h2>
       <div class="mx-auto">
-         <div class="input-group">
-            <input type="text" class="input input-bordered" bind:value={answer}>
-            <div class="btn btn-primary" on:click={checkAnswer}>ตรวจคำตอบ</div>
-         </div>
-         {#if submissionResponse}
-            <p>{submissionResponse.result} {submissionResponse.hint || ''}</p>
+         {#if !solved[currentTab]}
+            <div class="input-group">
+               <input type="text" class="input input-bordered" bind:value={answer}>
+               <div class="btn btn-primary" on:click={checkAnswer}>ตรวจคำตอบ</div>
+            </div>
+            {#if submissionResponse}
+               <p>{submissionResponse.answer?.toUpperCase()} is {submissionResponse.result} {submissionResponse.hint || ''}</p>
+            {/if}
+         {:else}
+            <p>The answer is {content.puzzles[currentTab].solution?.toUpperCase()}</p>
          {/if}
       </div>
       <iframe src="{currentPuzzle.file}/preview" width="600" height="800" title="file" class="mx-auto max-h-screen"/>

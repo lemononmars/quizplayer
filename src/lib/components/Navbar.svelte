@@ -9,8 +9,6 @@
 
    let hideBar = false
    let openModal = false
-
-   let newUsername = ''
 </script>
 
 <div class="navbar w-screen hidden lg:flex bg-success-content h-10 py-2">
@@ -27,7 +25,7 @@
       {/each}
    </div>
    <div class="navbar-end">
-      <div on:click={()=>openModal = true}>
+      <div class="btn btn-circle" on:click={()=>openModal = true}>
          <SettingsIcon size=2x />
       </div>
    </div>
@@ -54,7 +52,7 @@
       </div>
    </div>
 
-   <div class="absolute top-0 left-0 -translate-y-1/2">
+   <div class="absolute top-0 left-0 -translate-y-full">
       <div class="btn btn-xs bg-base-content text-primary" on:click={()=>hideBar = !hideBar}>
          {#if hideBar}
             <ChevronUpIcon/>
@@ -69,7 +67,7 @@
 <input type="checkbox" id="submit-modal" class="modal-toggle"/>
 <!-- svelte-ignore a11y-label-has-associated-control -->
 <label class="modal cursor-pointer w-screen" class:modal-open={openModal}>
-   <label class="modal-box relative" for="">
+   <label class="modal-box relative flex flex-col justify-center" for="">
       <h1>ตั้งค่า</h1>
       <div class="grid grid-cols-2">
          <h3 class="text-xl font-bold p-2">ชื่อ</h3>

@@ -15,8 +15,8 @@
    export let content: IPuzzleCrossword
    let clues: Clue[] = content.clues
 
-   const sizeStr = content.size[0] >= 6 ? 'w-10 h-10' : 'w-20 h-20'
-   const letterSize = content.size[0] >= 6 ? 'text-xl' : 'text-5xl'
+   const sizeStr = content.size[0] >= 8 ? 'w-10 h-10' : content.size[0] >= 6 ? 'w-16 h-16' : 'w-20 h-20'
+   const letterSize = content.size[0] >= 8 ? 'text-xl' : content.size[0] >= 6 ? 'text-3xl' :  'text-5xl'
 
    // add indices to the clues by sorting it from top-left to bottom-right
    let sortedPositions = content.clues.map((c, idx) => [idx, c.position[0], c.position[1]])
@@ -212,18 +212,19 @@
          moveTo(-1,0)
       else if(grid[activeCell[0]][activeCell[1]].locked)
          return 
-      
-      // modifying cells
-      if(event.code === 'Backspace') {
-         if(grid[activeCell[0]][activeCell[1]].input)
-            grid[activeCell[0]][activeCell[1]].input = ''
+      else {
+         // modifying cells
+         if(event.code === 'Backspace') {
+            if(grid[activeCell[0]][activeCell[1]].input)
+               grid[activeCell[0]][activeCell[1]].input = ''
+            else
+               prevCell()
+         }
          else
-            prevCell()
+            modifyCell(event.key)
+         // else 
+         //    alert("ลืมเปลี่ยนภาษาหรือเปล่า?")
       }
-      else
-         modifyCell(event.key)
-      // else 
-      //    alert("ลืมเปลี่ยนภาษาหรือเปล่า?")
    }
 
    function modifyCell(letter: string) {
@@ -300,7 +301,7 @@
             <div class="flex flex-row mx-auto">
                {#each rows as _, cidx}
                   {#if grid[cidx][ridx].solution === ''}
-                     <div class="{sizeStr} border-2 bg-base-content"></div>
+                     <div class="{sizeStr} border-2 bg-base-content border-base-content"></div>
                   {:else}
                      <div class="relative {sizeStr}" on:click={()=>selectPosition([cidx, ridx])}>
                         <div 
@@ -326,7 +327,7 @@
             </div>
          {/each}
       </div>
-      <div class="flex flex-row justify-between items-center">
+      <div class="flex flex-row justify-between items-center h-24">
          <div class="btn" on:click={prevClue}>
             <ChevronLeftIcon/>
          </div>
@@ -342,6 +343,7 @@
       {#each clues as c, idx} 
          {#if c.direction === 'down'}
             <li class:bg-neutral-content={activeClue.index == c.index && activeClue.direction === 'down'} class="bg-opacity-20">
+               <!-- svelte-ignore a11y-missing-attribute -->
                <a on:click={()=>selectClue(c)}>
                   <p class:opacity-40={solvedClues[idx]}>{c.index}) {c.clue}</p>
                </a>
@@ -354,6 +356,7 @@
       {#each clues as c, idx}
          {#if c.direction === 'across'}
             <li class:bg-neutral-content={activeClue.index == c.index && activeClue.direction === 'across'} class="bg-opacity-20">
+               <!-- svelte-ignore a11y-missing-attribute -->
                <a on:click={()=>selectClue(c)}>
                   <p class:opacity-40={solvedClues[idx]}>{c.index}) {c.clue}</p>
                </a>

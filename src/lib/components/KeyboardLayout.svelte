@@ -41,7 +41,7 @@
       {#each r as key, kidx}
          {@const shiftKey = layout.rowsShifted[ridx][kidx]}
          <div 
-            class="relative rounded-md border-2 flex-grow h-8 text-2xl" 
+            class="relative rounded-md border-2 flex-grow h-8 text-2xl hover:bg-success"
             on:click={()=> type(ridx, kidx)}
             class:bg-success={key === '⇧' && isShift}
          >
@@ -64,3 +64,21 @@
       {/each}
    </div>
 {/each}
+
+
+<style>
+	@keyframes pressed {
+		20% {
+			background-color: hsl(var(--su));
+      }
+		80% {
+			background-color: none;
+		}
+	}
+	.typed {
+		animation-duration: 0.5s;
+		animation-fill-mode: both;
+		animation-name: pressed;
+		animation-play-state: running;
+	}
+</style>

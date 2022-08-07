@@ -1,4 +1,5 @@
 import cryptic from './cryptic'
+import crossword01 from './crossword01'
 
 export default [
    {
@@ -77,5 +78,14 @@ export default [
             position: [9,0]
          },
       ]
-   }
+   },
+   {
+      type: 'crossword',
+      id: 4,
+      title: "Crossword 1",
+      date: "2022-08-07",
+      tags: ["crossword"],
+      size: [6,6],
+      clues: crossword01
+   },
 ]

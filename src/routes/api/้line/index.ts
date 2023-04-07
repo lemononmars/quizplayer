@@ -5,7 +5,7 @@ import { from } from '$lib/supabase';
  * @param {null}
  * @return {object} array of objects
  */
-/** @type {import('/api/puzzle/[type]/[id].ts').RequestHandler} */
+/** @type {import('/api/line/index.ts').RequestHandler} */
 export async function get({ params }) {
 
 	const {type} = params;

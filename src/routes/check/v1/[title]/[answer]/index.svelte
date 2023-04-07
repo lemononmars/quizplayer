@@ -1,5 +1,5 @@
 <script lang=ts>
-   import {encode, decode} from '../../helper'
+   import {encode, decode} from '../../../helper'
 
    function checkAnswer(){
       loading = true
@@ -15,7 +15,6 @@
    let lastSubmission:string = ''
    let correct:boolean = false
    let loading:boolean = false
-   let response:string = ''
 </script>
 
 <svelte:head>

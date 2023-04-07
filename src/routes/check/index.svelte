@@ -9,7 +9,7 @@
    let submitted:boolean = false
    let title:string = ''
    let answer:string = ''
-   let prefix:string = 'https://codebreaker-ten.vercel.app/check'
+   let prefix:string = 'https://codebreaker-ten.vercel.app/check/v1' // probably v2 for more secured version
    let link:string = ''
 </script>
 

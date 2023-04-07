@@ -6,7 +6,7 @@ import { from } from '$lib/supabase';
  * @return {object} array of objects
  */
 /** @type {import('/api/line/index.ts').RequestHandler} */
-export async function get({ params }) {
+export async function post({ request }) {
 
 	const {type} = params;
 	const { data, error } = await from(type).select('*')

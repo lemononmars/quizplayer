@@ -14,10 +14,11 @@
 </script>
 
 <svelte:head>
-   <title>สร้างช่องตรวจคำตอบ</title>
+   <title>Create Answer Checker</title>
 </svelte:head>
 
 <div class="flex flex-col gap-2 h-full lg:h-auto relative overflow-y-clip lg:overflow-y-none">
+   <h1>สร้างลิงก์ตรวจคำตอบ</h1>
    <div class="">ใส่ชื่อโจทย์</div>
    <input class="input input-bordered text-3xl" type="text" bind:value={title}>
    <div class="">ใส่คำตอบ</div>

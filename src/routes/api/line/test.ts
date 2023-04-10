@@ -29,7 +29,7 @@ export async function post({ request }) {
 	let data = await request.json()
 	if(!data)
 		return {
-			status: 202,
+			status: 200,
 			headers: { 'Content-Type': 'application/json' },
 			body: {}
 		};
@@ -101,4 +101,10 @@ export async function post({ request }) {
 	client.replyMessage(replyToken, replyMessage)
 		.then()
 		.catch((err)=>{})
+
+	return {
+		status: 200,
+		headers: { 'Content-Type': 'application/json' },
+		body: {}
+	};
 }

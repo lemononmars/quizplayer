@@ -34,30 +34,37 @@ export async function post({ request }) {
 			body: {}
 		};
 	
-	const event = await data.events[0]
+	const event = data.events[0]
 	const replyToken = event.replyToken
 	const userMessage: string = event.message?.text || ''
 
-	let replyMessage: Message = {
+	let replyMessage: Message | Message[] = {
 		type: 'text',
 		text: `พิมพ์ 'เริ่ม' เพื่อเริ่มต้นใหม่ พิมพ์ 'ใบ้#' (ไม่มีช่องว่าง) เพื่อขอคำใบ้ของข้อที่ #`
 	}
 
-	let replyMessages: Message[]
 
 	if (event.type === 'follow') {
-		replyMessages = [
+		replyMessage = [
 			{
 				type: 'text',
 				text: 'ยินดีต้อนรับสู่ห้องปริศนา !'
 			},
 			{
 				type: 'text',
-				text: `พิมพ์ 'เริ่ม' เพื่อเริ่มเล่น พิมพ์ 'ใบ้#' (ไม่มีช่องว่าง) เพื่อขอคำใบ้ของข้อที่ #`
+				text: `พิมพ์ 'เริ่ม' เพื่อเริ่มเล่น`,
+			},
+			{
+				type: 'text',
+				text: `พิมพ์ 'ใบ้#' (ไม่มีช่องว่าง) เพื่อขอคำใบ้ของข้อที่ #`
 			}
 		]
+
+		reply(replyToken, replyMessage)
+		return
 	}
-	else if (event.type === "message") {
+	
+	if (event.type === "message") {
 		if(userMessage === 'เริ่ม') {
 			replyMessage = {
 				type: 'image',
@@ -68,16 +75,30 @@ export async function post({ request }) {
 		else if(answers.includes(userMessage)) {
 			const answerNo = answers.indexOf(userMessage)
 			if(answerNo < 3)
-				replyMessage = {
-					type: 'image',
-					originalContentUrl: imgUrlPrefix + `rebus0${answerNo + 2}.png`,
-					previewImageUrl: imgUrlPrefix + `rebus0${answerNo + 2}.png`,
-				}
+				replyMessage = [
+					{
+						type: 'sticker',
+						packageId: '6359',
+						stickerId: '11069848'
+					},
+					{
+						type: 'image',
+						originalContentUrl: imgUrlPrefix + `rebus0${answerNo + 2}.png`,
+						previewImageUrl: imgUrlPrefix + `rebus0${answerNo + 2}.png`,
+					}
+				]
 			else
-				replyMessage = {
-					type: 'text',
-					text: 'ยินดีด้วย! คุณแก้ปริศนาครบทั้ง 4 ข้อแล้ว ไว้มาเล่นกันใหม่ในเกมหน้า'
-				}
+				replyMessage = [
+					{
+						type: 'text',
+						text: 'ยินดีด้วย! คุณแก้ปริศนาครบทั้ง 4 ข้อแล้ว ไว้มาเล่นกันใหม่ในเกมหน้า'
+					},
+					{
+						type: 'sticker',
+						packageId: '6359',
+						stickerId: '11069868'
+					}
+				]
 		}
 		else if (userMessage.startsWith('ใบ้')) {
 			const hintNo: number = parseInt(userMessage[userMessage.length-1])
@@ -92,8 +113,8 @@ export async function post({ request }) {
 					text: `ลองใหม่ พิมพ์ 'ใบ้#' เพื่อขอคำใบ้ของข้อ #`
 				}
 		}
+		reply(replyToken, replyMessage)
 	}
-	reply(replyToken, replyMessage)
 
 	return {
 		status: 200,

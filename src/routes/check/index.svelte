@@ -3,7 +3,7 @@
 
    const create = ()=>{
       submitted = true
-      link = `${prefix}/${encode(title)}/${encode(answer)}`
+      link = `${prefix}/${encode(title.toUpperCase())}/${encode(answer)}`
    }
 
    let submitted:boolean = false
@@ -23,7 +23,7 @@
    <input class="input input-bordered text-3xl" type="text" bind:value={title}>
    <div class="">ใส่คำตอบ</div>
    <input class="input input-bordered text-3xl" type="text" bind:value={answer}>
-   <div class="btn btn-primary w-48 m-auto" on:click={create}>สร้าง</div>
+   <div class="btn btn-primary w-48 m-auto" on:click={create} on:keypress={()=>{}}>สร้าง</div>
 
    <div class="text-center">
       {#if submitted}

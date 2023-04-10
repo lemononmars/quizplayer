@@ -1,5 +1,5 @@
-import line from '@line/bot-sdk'
 import type {Message} from '@line/bot-sdk'
+import {reply} from '$lib/lineapi'
 
 const hints = [
 	`นับว่ามี ม.ม้า กี่ตัว คำตอบอยู่ในรูป "จำนวน + ม"`,
@@ -27,7 +27,7 @@ const imgUrlPrefix = `https://raw.githubusercontent.com/lemononmars/codebreaker/
 export async function post({ request }) {
 
 	let data = await request.json()
-	if(!data)
+	if(!data || !data.events || data.events.length == 0)
 		return {
 			status: 200,
 			headers: { 'Content-Type': 'application/json' },
@@ -35,16 +35,6 @@ export async function post({ request }) {
 		};
 	
 	const event = await data.events[0]
-	if(data.events.length == 0)
-		return {
-			status: 200,
-			headers: { 'Content-Type': 'application/json' },
-			body: {}
-		};
-
-	const client = new line.Client({
-		channelAccessToken: import.meta.env.VITE_LINE_ACCESS_TOKEN
-	})
 	const replyToken = event.replyToken
 	const userMessage: string = event.message?.text || ''
 
@@ -103,10 +93,7 @@ export async function post({ request }) {
 				}
 		}
 	}
-
-	client.replyMessage(replyToken, replyMessage)
-		.then()
-		.catch((err)=>{})
+	reply(replyToken, replyMessage)
 
 	return {
 		status: 200,

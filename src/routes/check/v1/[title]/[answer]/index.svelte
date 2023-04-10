@@ -4,7 +4,7 @@
    function checkAnswer(){
       loading = true
       lastSubmission = submission
-      correct = (encode(submission) === answer)
+      correct = (encode(submission).toUpperCase() === answer.toUpperCase())
       setTimeout(()=> loading = false, 500) // wait 1 seconds before revealing
    }
 

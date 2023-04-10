@@ -1,10 +1,12 @@
-import { WebhookClient } from 'discord.js' 
+import line from '@line/bot-sdk'
+import type {Message} from '@line/bot-sdk'
 
-const webhook = new WebhookClient({
-   id: String(import.meta.env.VITE_DISCORD_WEBHOOK_ID), 
-   token: String(import.meta.env.VITE_DISCORD_WEBHOOK_TOKEN)
+export const client = new line.Client({
+   channelAccessToken: import.meta.env.VITE_LINE_ACCESS_TOKEN
 })
 
-export function sendhook(message: string) {
-	webhook.send(message)
+export function reply(token: string, message: Message) {
+   client.replyMessage(token, message)
+      .then()
+      .catch((err)=>{})
 }

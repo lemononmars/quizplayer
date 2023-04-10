@@ -27,7 +27,7 @@ const imgUrlPrefix = `https://raw.githubusercontent.com/lemononmars/codebreaker/
 export async function post({ request }) {
 
 	let data = await request.json()
-	if(!data)
+	if(!data || data.events.length === 0)
 		return {
 			status: 200,
 			headers: { 'Content-Type': 'application/json' },

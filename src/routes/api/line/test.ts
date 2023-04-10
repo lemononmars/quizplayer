@@ -74,8 +74,8 @@ export async function post({ request }) {
 			if(answerNo < 3)
 				replyMessage = {
 					type: 'image',
-					originalContentUrl: imgUrlPrefix + `rebus0${answerNo + 1}.png`,
-					previewImageUrl: imgUrlPrefix + `rebus0${answerNo + 1}.png`,
+					originalContentUrl: imgUrlPrefix + `rebus0${answerNo + 2}.png`,
+					previewImageUrl: imgUrlPrefix + `rebus0${answerNo + 2}.png`,
 				}
 			else
 				replyMessage = {

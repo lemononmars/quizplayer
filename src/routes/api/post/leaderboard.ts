@@ -8,6 +8,8 @@ export async function post( {request} ){
 	const submission: Leaderboard = await request.json()
 	const {name, puzzle_type, puzzle_id, score} = submission
 
+   console.log(submission)
+
 	const {data, error} = await from('leaderboard').insert(submission)
 
    if(error) {

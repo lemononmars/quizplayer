@@ -3,5 +3,5 @@ export interface Leaderboard {
    puzzle_type: string,
    puzzle_id: number,
    score: number,
-   created_at: Date
+   created_at: string
 }

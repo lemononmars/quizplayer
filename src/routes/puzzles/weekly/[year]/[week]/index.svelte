@@ -1,6 +1,6 @@
 <script lang=ts>
    import {username} from '$lib/store'
-   import {XCircleIcon, KeyIcon} from 'svelte-feather-icons'
+   import {XCircleIcon, KeyIcon, Link2Icon} from 'svelte-feather-icons'
    export let year: number, week: number
 
    let answer: string = ''
@@ -45,8 +45,18 @@
    }
 
    async function addToLeaderboard() {
+      // check your answer again, just in case 0_0
+      const res = await fetch(`/api/puzzle/weekly/${year}/${week}/${answer}`)
+      const data = await res.json()
+
+      if(data) {
+         if(!data.result) {
+            return
+         }
+      }
+
       isSubmitting = true
-		const res = await fetch('/api/post/leaderboard', {
+		await fetch('/api/post/leaderboard', {
          method: 'POST',
          cache: 'default',
          credentials: 'same-origin',
@@ -83,9 +93,9 @@
             </div>
          </div>
       {:else}
-         <h2>คุณแก้ปริศนาได้แล้ว! ดูตารางอันดับได้ที่</h2>
+         <h2>คุณแก้ปริศนาได้แล้ว! ดูตารางอันดับได้ที่นี่</h2>
          <a href="/puzzles/weekly/{year}/{week}/leaderboard">
-            <p class="text-base">นี่</p>
+            <Link2Icon size=20/>
          </a>
       {/if}
    </div>

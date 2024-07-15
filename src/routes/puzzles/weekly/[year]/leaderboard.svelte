@@ -19,6 +19,7 @@
 
 <script lang=ts>
    export let data: Leaderboard[], year: number
+   let curseason: number = 0 // 0 = all, 1,2,3,4 for weeks 1-13, 14-27, 28-38 and 39-52
    let min = data[0].puzzle_id%100
    let max = data[0].puzzle_id%100
    data.forEach(d=>{ 
@@ -29,7 +30,26 @@
             max = temp
       }
    )
-   const weekArray = Array(max-min+1).fill(0).map((x, y) => x + y + min)
+
+   const minseason: number = Math.floor(min/13)+1
+   const maxseason: number = Math.floor(max/13)+1
+   let seasons: number[] = []
+   for(let i = minseason; i <= maxseason; i ++)
+      seasons.push(i)
+
+   $: minweek = getMinWeek(curseason)
+   $: maxweek = getMaxWeek(curseason)
+   $: weekArray = Array(maxweek-minweek+1).fill(0).map((x, y) => y + minweek)
+   
+   const getMinWeek = function(s: number) {
+      const absmin = (s === 0) ? 0:(s-1)*13 + 1
+      return Math.max(absmin, min)
+   }
+   const getMaxWeek = function(s: number) {
+      const absmax = (s === 0) ? 52:s*13
+      return Math.min(absmax, max)
+   }
+
 
    let names: string[] = []
    data.forEach(d => {
@@ -37,11 +57,16 @@
       if(!names.includes(name))
          names = [name, ...names]
    })
-   names.sort((a,b) => getTotal(b) - getTotal(a))
 
-   function getTotal(n: string) {
+   $: sortedNames = names.filter(n => getTotal(n, minweek, maxweek) > 0).sort((a,b) => getTotal(b, minweek, maxweek) - getTotal(a, minweek, maxweek))
+
+   function getTotal(n: string, a: number, b: number) {
       let sum = 0
-      data.forEach(d => {if(d.name === n) sum+= d.score})
+      data.forEach(d => {
+         if(d.name === n && d.puzzle_id%100 >= a && d.puzzle_id%100 <= b) 
+            sum+= d.score
+         }
+      )
       return sum
    }
 
@@ -56,25 +81,36 @@
 
 <h1>ตารางอันดับ ปริศนาประจำปี {year}</h1>
 
-<table class="table table-zebra mx-auto">
-   <thead>
-      <th>อันดับ</th>
-      <th>ชื่อ</th>
-      <th>คะแนนรวม</th>
-      {#each weekArray as week}
-         <th>สัปดาห์ที่ {week}</th>
-      {/each}
-   </thead>
-   <tbody>
-      {#each names as n, idx}
+<ul class="menu menu-vertical lg:menu-horizontal bg-base-200 rounded-box">
+   <li><a on:click={()=>{curseason = 0}} class="{curseason === 0? 'active':''}">รวม</a></li>
+   {#each seasons as ss}
+      <li><a on:click={()=>{curseason = ss}} class="{curseason === ss? 'active':''}">ฤดูกาลที่ {ss}</a></li>
+   {/each}
+ </ul>
+
+<div class="overflow-x-auto overflow-y-auto h-screen">
+   <table class="table table-zebra table-pin-rows table-pin-cols mx-auto border-collapse">
+      <thead>
          <tr>
-            <td>{idx+1}</td>
-            <td>{n}</td>
-            <td>{getTotal(n)}</td>
+            <th>ชื่อ</th>
+            <td>อันดับ</td>
+            <td>คะแนนรวม</td>
             {#each weekArray as week}
-               <td>{findScore(n,week)}</td>
+               <td>สัปดาห์ที่ {week}</td>
             {/each}
          </tr>
-      {/each}
-   </tbody>
-</table>
+      </thead>
+      <tbody>
+         {#each sortedNames as n, idx}
+            <tr>
+               <th class="text-nowrap max-w-40">{n}</th>
+               <th>{idx+1}</th>
+               <td>{getTotal(n, minweek, maxweek)}</td>
+               {#each weekArray as week}
+                  <td>{findScore(n,week)}</td>
+               {/each}
+            </tr>
+         {/each}
+      </tbody>
+   </table>
+</div>

@@ -5,7 +5,6 @@
       const {year, week} = params
       const res = await fetch('/api/leaderboard/weekly')
       const data: Leaderboard[] = await res.json()
-      console.log(year+week)
 
       return {
          props: { 
@@ -45,12 +44,12 @@
    </thead>
    <tbody>
       {#each sortedData as d, idx}
-         <tr>
+         <tr class="{idx <=5 ? 'bg-slate-50':''}">
             <td>{idx+1}</td>
             <td>{d.name}</td>
             <td class="text-right">{toDateString(d.created_at)}</td>
             <td class="text-right">{toTimeString(d.created_at)}</td>
-            <td>{10 - Math.min(idx, 5)}</td>
+            <td>{d.score}</td>
          </tr>
       {/each}
    </tbody>

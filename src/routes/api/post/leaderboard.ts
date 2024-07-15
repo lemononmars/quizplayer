@@ -5,11 +5,16 @@ import { sendhook} from '$lib/discord'
  * @type {import('@sveltejs/kit').RequestHandler}
  */
 export async function post( {request} ){
-	const submission: Leaderboard = await request.json()
+	let submission: Leaderboard = await request.json()
 	const {name, puzzle_type, puzzle_id, score} = submission
 
-   console.log(submission)
-
+   // weekly puzzle requires scoring system
+   if(puzzle_type === 'weekly') {
+      const {data, error} = await from('leaderboard').select('*').eq('puzzle_id', puzzle_id)
+      if(data) {
+         submission.score = 10 - Math.min(data.length,5)
+      }
+   }
 	const {data, error} = await from('leaderboard').insert(submission)
 
    if(error) {

@@ -1,6 +1,7 @@
 <script lang=ts>
    import {username} from '$lib/store'
    import {XCircleIcon, KeyIcon, Link2Icon} from 'svelte-feather-icons'
+   // import { Leaderboard } from '$lib/interfaces'
    export let year: number, week: number
 
    let answer: string = ''
@@ -46,8 +47,8 @@
 
    async function addToLeaderboard() {
       // check your answer again, just in case 0_0
-      const res = await fetch(`/api/puzzle/weekly/${year}/${week}/${answer}`)
-      const data = await res.json()
+      let res = await fetch(`/api/puzzle/weekly/${year}/${week}/${answer}`)
+      let data = await res.json()
 
       if(data) {
          if(!data.result) {
@@ -94,7 +95,7 @@
          </div>
       {:else}
          <h2>คุณแก้ปริศนาได้แล้ว! ดูตารางอันดับได้ที่นี่</h2>
-         <a href="/puzzles/weekly/{year}/{week}/leaderboard">
+         <a class="button" href="/puzzles/weekly/{year}/{week}/leaderboard">
             <Link2Icon size=20/>
          </a>
       {/if}

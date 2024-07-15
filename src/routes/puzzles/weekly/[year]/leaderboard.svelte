@@ -32,7 +32,7 @@
    )
 
    const minseason: number = Math.floor(min/13)+1
-   const maxseason: number = Math.floor(max/13)+1
+   const maxseason: number = Math.ceil(max/13)
    let seasons: number[] = []
    for(let i = minseason; i <= maxseason; i ++)
       seasons.push(i)

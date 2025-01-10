@@ -16,7 +16,7 @@ export async function get({ params }) {
    if(data) {
       const ans = await data[0].answer
 
-      if(answer === ans)
+      if(answer.toUpperCase() === ans.toUpperCase())
          return {
             status: 200,
             headers: { 'Content-Type': 'application/json' },

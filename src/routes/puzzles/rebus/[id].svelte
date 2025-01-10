@@ -6,7 +6,7 @@
 
       return {
          props: {
-            content
+            content, id
          }
       }
    }
@@ -16,7 +16,7 @@
    import type {IRebus} from '$lib/interfaces'
    import TitleTab from '$lib/components/TitleTab.svelte';
    import { getPuzzleImageURL } from '$lib/supabase';
-   export let content: IRebus
+   export let content: IRebus, id: number
 
    let solved: boolean = false
    let submitted: boolean = false
@@ -28,6 +28,7 @@
 
    $: length = pastAnswers.length
    let numHints: number = 0
+   const imgurl = "rebus" + ("0" + id).slice(-2) + ".png"
 
    let openModal: boolean = false
 
@@ -69,9 +70,9 @@
    <TitleTab {content}/>
 
    <div class="mx-auto w-full lg:w-1/2">
-      <img src="{getPuzzleImageURL('rebus', content.image)}" class="aspect-auto object-contain" alt="img">
+      <img src="{getPuzzleImageURL('rebus', imgurl)}" onerror='this.style.display = "none"' class="aspect-auto object-contain" alt="img">
    </div>
-   <h3>{content.question}</h3>
+   <h3>ภาพนี้แสดงคำว่าอะไร?</h3>
 
    {#if !solved}
       <div class="input-group w-72 mx-auto">

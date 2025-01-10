@@ -19,7 +19,9 @@
 </svelte:head>
 
 <div class="col-md-9">
-	<h1>{status}</h1>
+
+	<h1>หน้านี้ไม่มีอยู่จริงนะ</h1>
+	<h2>{status}</h2>
 
 	<p>{error.message}</p>
 

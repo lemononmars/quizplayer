@@ -27,6 +27,11 @@
          description: "แก้ชุดปริศนา",
          icon: getImageURL('assets', 'puzzlehunt.png')
       },
+      {
+         type: "weekly",
+         description: "ปริศนาประจำสัปดาห์บนเพจ fb",
+         icon: getImageURL('assets', 'rebus.png')
+      },
       // {
       //    type: "adventure",
       //    description: "ตะลุยด่านไขรหัส",

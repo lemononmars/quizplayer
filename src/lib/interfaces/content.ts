@@ -63,4 +63,4 @@ export interface IPuzzleHunt extends IContent{
    puzzles: IPuzzleHuntSingle[]
 }
 
-export type PuzzleType = 'alphabet' | 'rebus' | 'crossword' | 'puzzlehunt'
+export type PuzzleType = 'alphabet' | 'rebus' | 'crossword' | 'puzzlehunt' | 'weekly'

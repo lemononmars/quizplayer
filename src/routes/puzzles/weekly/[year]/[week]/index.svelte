@@ -1,11 +1,12 @@
 <script lang=ts>
    import {username} from '$lib/store'
    import {XCircleIcon, KeyIcon, Link2Icon} from 'svelte-feather-icons'
-   // import { Leaderboard } from '$lib/interfaces'
-   export let year: number, week: number
+   import { getPuzzleImageURL } from '$lib/supabase';
+   export let year: number, week: number, title: string
 
    let answer: string = ''
    let logs: string[] = []
+   let imgurl: string = year + ("0"+week).slice(-2) + ".jpg"
    let openModal: boolean = false
    let isFinished: boolean = false
 
@@ -80,8 +81,14 @@
 <svelte:body on:keypress={handleKeyPress}/>
 
 <div class="flex flex-col gap-2 h-full lg:h-auto relative overflow-y-clip lg:overflow-y-none">
+   <h1>ปริศนาสัปดาห์ที่ {week} ปี {year}</h1>
+   {#if title}
+      <h2>{title}</h2>
+   {/if}
+   <div class="mx-auto w-full lg:w-1/2">
+      <img src="{getPuzzleImageURL('weekly', imgurl)}" onerror='this.style.display = "none"' class="aspect-auto object-contain" alt="img">
+   </div>
    <div class="sticky top-0 lg:top-20 flex flex-col z-20 bg-info-content h-1/2 lg:h-auto">
-      <h1>ปริศนาสัปดาห์ที่ {week} ปี {year}</h1>
       {#if !isFinished}
          <div class="flex flex-row flex-wrap justify-center my-2 gap-4 w-full px-4">
             <div class="input-group w-80" class:wiggle={isWiggle}>

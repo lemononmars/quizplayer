@@ -12,7 +12,6 @@ export async function get() {
 
    const { data, error } = await from('weekly_solution').select('year, week, title');
    if(data) {
-      console.log(data)
       return {
          status: 200,
          headers: { 'Content-Type': 'application/json' },

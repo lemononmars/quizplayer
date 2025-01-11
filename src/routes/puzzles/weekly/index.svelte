@@ -23,7 +23,7 @@
 
 <div class="flex flex-col gap-2 h-full lg:h-auto relative overflow-y-clip lg:overflow-y-none text-left">
    {#each years as y}
-      <h1> ปี {y} </h1>
+      <h1> ปี {y} </h1> <a href="/puzzles/weekly/{y}/leaderboard">(ตารางอันดับ)</a>
       <ul>
       {#each content.filter(c => c.year == y).sort((a,b) => b.week - a.week) as c}
          <li>

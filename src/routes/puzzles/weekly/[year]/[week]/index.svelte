@@ -1,12 +1,20 @@
 <script lang=ts>
    import {username} from '$lib/store'
-   import {XCircleIcon, KeyIcon, Link2Icon} from 'svelte-feather-icons'
+   import {XCircleIcon, KeyIcon, Link2Icon, ChevronLeftIcon, ChevronRightIcon} from 'svelte-feather-icons'
    import { getPuzzleImageURL } from '$lib/supabase';
    export let year: number, week: number, title: string
 
    let answer: string = ''
    let logs: string[] = []
-   let imgurl: string = year + ("0"+week).slice(-2) + ".jpg"
+   $:imgurl = year + weekStr(week) + ".jpg"
+   
+   const prefixUrl = "/puzzles/weekly/"
+   $:prevPuzzleUrl = prefixUrl + (week == 1? (Number(year)-1) + "/52": year + "/" + weekStr(week-1))
+   $:nextPuzzleUrl = prefixUrl + (week == 52? (Number(year)+1) + "/01": year + "/" + weekStr(Number(week)+1))
+   function weekStr(n: number) {
+      return ("0"+n).slice(-2)
+   }
+
    let openModal: boolean = false
    let isFinished: boolean = false
 
@@ -81,12 +89,22 @@
 <svelte:body on:keypress={handleKeyPress}/>
 
 <div class="flex flex-col gap-2 h-full lg:h-auto relative overflow-y-clip lg:overflow-y-none">
-   <h1>ปริศนาสัปดาห์ที่ {week} ปี {year}</h1>
+   <div class="flex flex-row justify-center items-center gap-2">
+      <div class="btn btn-outline btn-sm"><a href="{prevPuzzleUrl}">
+         <ChevronLeftIcon size=20/>
+      </a></div>
+      <div><h1><a href="/puzzles/weekly">ปริศนาสัปดาห์ที่ {week} ปี {year}</a></h1></div>
+      <div class="btn btn-outline btn-sm"><a href="{nextPuzzleUrl}">
+         <ChevronRightIcon size=20/>
+      </a></div>
+   </div>
    {#if title}
       <h2>{title}</h2>
    {/if}
    <div class="mx-auto w-full lg:w-1/2">
-      <img src="{getPuzzleImageURL('weekly', imgurl)}" onerror='this.style.display = "none"' class="aspect-auto object-contain" alt="img">
+      {#key imgurl}
+         <img src="{getPuzzleImageURL('weekly', imgurl)}" onerror='this.style.display = "none"' class="aspect-auto object-contain" alt="img">
+      {/key}
    </div>
    <div class="sticky top-0 lg:top-20 flex flex-col z-20 bg-info-content h-1/2 lg:h-auto">
       {#if !isFinished}

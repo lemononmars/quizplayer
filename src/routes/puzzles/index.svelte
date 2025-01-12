@@ -30,7 +30,7 @@
       {
          type: "weekly",
          description: "ปริศนาประจำสัปดาห์บนเพจ fb",
-         icon: getImageURL('assets', 'rebus.png')
+         icon: getImageURL('assets', 'adventure.png')
       },
       // {
       //    type: "adventure",

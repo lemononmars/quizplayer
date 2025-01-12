@@ -14,10 +14,12 @@
 
 <script lang=ts>
    import type {IRebus} from '$lib/interfaces'
-   import TitleTab from '$lib/components/TitleTab.svelte';
+   import {ChevronLeftIcon, ChevronRightIcon} from 'svelte-feather-icons'
    import { getPuzzleImageURL } from '$lib/supabase';
    export let content: IRebus, id: number
+   const maxNumPuzzles: number = 31 // hard-coded
 
+   content.type = 'rebus'
    let solved: boolean = false
    let submitted: boolean = false
 
@@ -28,7 +30,7 @@
 
    $: length = pastAnswers.length
    let numHints: number = 0
-   const imgurl = "rebus" + ("0" + id).slice(-2) + ".png"
+   $: imgurl = "rebus" + ("0" + id).slice(-2) + ".png"
 
    let openModal: boolean = false
 
@@ -64,13 +66,44 @@
    function scrollBottom() {
 		window.scroll({ top: window.innerHeight + 200, behavior: 'smooth' });
 	}
+
+   function clearAns() {
+      answer = ''
+      pastAnswers = []
+      numHints = 0
+   }
 </script>
 
 <div class="flex flex-col gap-2 pb-10">
-   <TitleTab {content}/>
+   <div class = 'flex flex-col justify-center'>
+      <div class="flex flex-row justify-center items-center gap-2">
+         <!-- svelte-ignore a11y-click-events-have-key-events -->
+         {#if id > 1}
+         <div class="btn btn-outline btn-sm" on:click={clearAns}><a href="/puzzles/rebus/{Number(id)-1}">
+            <ChevronLeftIcon size=20/>
+         </a></div>
+         {/if}
+         <div><h1><a href="/puzzles/rebus">Rebus {id}</a></h1></div>
+         <!-- svelte-ignore a11y-click-events-have-key-events -->
+         {#if id < maxNumPuzzles}
+         <div class="btn btn-outline btn-sm" on:click={clearAns}><a href="/puzzles/rebus/{Number(id)+1}">
+            <ChevronRightIcon size=20/>
+         </a></div>
+         {/if}
+      </div>
+      <div>
+         {#if content.tags}
+            {#each content.tags as t}
+               <a href="/puzzles/{content.type}?tag={t}"><div class="badge badge-outline">{t}</div></a>
+            {/each}
+         {/if}
+      </div>
+   </div>
 
    <div class="mx-auto w-full lg:w-1/2">
-      <img src="{getPuzzleImageURL('rebus', imgurl)}" onerror='this.style.display = "none"' class="aspect-auto object-contain" alt="img">
+      {#key imgurl}
+         <img src="{getPuzzleImageURL('rebus', imgurl)}" onerror='this.style.display = "none"' class="aspect-auto object-contain" alt="img">
+      {/key}
    </div>
    <h3>ภาพนี้แสดงคำว่าอะไร?</h3>
 

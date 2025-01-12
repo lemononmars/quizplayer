@@ -3,7 +3,7 @@
    import {XCircleIcon, KeyIcon, Link2Icon, ChevronLeftIcon, ChevronRightIcon} from 'svelte-feather-icons'
    import { getPuzzleImageURL } from '$lib/supabase';
    export let year: number, week: number, title: string
-
+   
    let answer: string = ''
    let logs: string[] = []
    $:imgurl = year + weekStr(week) + ".jpg"
@@ -84,17 +84,24 @@
       openModal = false
       isFinished = true
 	}
+   function clearAns(){
+      answer = ''
+      logs = []
+      isFinished = false
+   }
 </script>
 
 <svelte:body on:keypress={handleKeyPress}/>
 
 <div class="flex flex-col gap-2 h-full lg:h-auto relative overflow-y-clip lg:overflow-y-none">
    <div class="flex flex-row justify-center items-center gap-2">
-      <div class="btn btn-outline btn-sm"><a href="{prevPuzzleUrl}">
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
+      <div class="btn btn-outline btn-sm" on:click={clearAns}><a href="{prevPuzzleUrl}">
          <ChevronLeftIcon size=20/>
       </a></div>
       <div><h1><a href="/puzzles/weekly">ปริศนาสัปดาห์ที่ {week} ปี {year}</a></h1></div>
-      <div class="btn btn-outline btn-sm"><a href="{nextPuzzleUrl}">
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
+      <div class="btn btn-outline btn-sm" on:click={clearAns}><a href="{nextPuzzleUrl}">
          <ChevronRightIcon size=20/>
       </a></div>
    </div>
@@ -111,7 +118,7 @@
          <div class="flex flex-row flex-wrap justify-center my-2 gap-4 w-full px-4">
             <div class="input-group w-80" class:wiggle={isWiggle}>
                <div class="btn btn-accent no-animation"><KeyIcon size=20/></div>
-               <input class="input input-bordered text-3xl w-48 transition-colors" type="text" bind:value={answer}>
+               <input class="input input-bordered text-3xl w-full transition-colors" type="text" bind:value={answer}>
                <div class="-translate-x-8 w-0 my-auto" class:hidden={answer === ''} on:click={()=>answer = ''}>
                   <XCircleIcon size=20/>
                </div>

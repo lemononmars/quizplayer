@@ -8,7 +8,7 @@
 
 <div align="center">
 
-![image](https://raw.githubusercontent.com/lemononmars/codebreaker/main/src/lib/images/event/event_tbs_21_promo.jpg)
+![image](https://raw.githubusercontent.com/lemononmars/codebreaker/main/src/lib/images/event/event_tbs21_promo.jpg)
 
 
 [รีวิว โดย "นักป้ายยามืออาชีพ"](https://www.facebook.com/nakpaiya/posts/pfbid02GEhyR7EAbo1XNRyGd8j2uvFX8jagEzEGCdPC9dnnkvNQ5w62tMLaFb3NeADYnLyzl)

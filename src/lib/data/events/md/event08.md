@@ -10,7 +10,7 @@
 
 ## ตัวอย่างปริศนา
 
-<iframe src="https://puzz.link/p?cbanana/6/6/l2244v3313l" title="puzz.link" width="100%" height = "600" class="mx-auto"/>
+<iframe src="https://pzprxs.vercel.app/p?slither/5/5/1aj2ai1dj2d" title="puzz.link" width="100%" height = "600" class="mx-auto"/>
 
 ## ภาพกิจกรรม
 

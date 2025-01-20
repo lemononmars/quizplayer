@@ -67,6 +67,7 @@ export const events: IEvent[] = [
    {
       type: "event",
       id: 8,
+      //redirect: "logiccontest",
       title: "Code Breaker Logic Puzzle Contest",
       date: "2025-01-25",
       image: 'event08.jpg',

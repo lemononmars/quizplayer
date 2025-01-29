@@ -71,7 +71,13 @@
       answer = ''
       pastAnswers = []
       numHints = 0
+      submitted = false
+      showAnswer = false
    }
+
+   function focusOnMount(node) {
+		node.focus();
+	}
 </script>
 
 <div class="flex flex-col gap-2 pb-10">
@@ -107,12 +113,12 @@
    </div>
    <h3>ภาพนี้แสดงคำว่าอะไร?</h3>
 
-   {#if !solved}
-      <div class="input-group w-72 mx-auto">
-         <input class="input input-bordered" type="text" bind:value={answer} on:keydown={handleKeyPress}>
-         <div class="btn btn-primary " on:click={checkAnswer}>ตรวจคำตอบ</div>
-      </div>
-   {/if}
+   <div class="input-group w-72 mx-auto">
+      {#key id}
+         <input class="input input-bordered w-full" type="text" bind:value={answer} on:keydown={handleKeyPress} use:focusOnMount>
+      {/key}
+      <div class="btn btn-primary " on:click={checkAnswer}>ตรวจคำตอบ</div>
+   </div>
    {#if submitted}
       {#if duplicate}
          <p class="text-warning">เคยส่งคำตอบนี้ไปแล้ว</p>
@@ -133,12 +139,14 @@
       <div class="w-full lg:w-1/2 mx-auto">
          <h1>คำใบ้</h1>
          {#each content.hints?.slice(0,numHints) as h, idx}
-            <div class="btn btn-outline btn-info">คำใบ้ที่ {idx+1}</div> <p>{h}</p>
+            <div class="btn btn-outline btn-info btn-sm">คำใบ้ที่ {idx+1}</div> 
+            <p>{h}</p>
+            <br>
          {/each}
          {#if numHints < content.hints.length}
-            <div class="btn btn-outline" on:click={revealHint}>เปิดคำใบ้ที่ {numHints + 1}</div>
+            <div class="btn btn-outline btn-sm" on:click={revealHint}>เปิดคำใบ้ที่ {numHints + 1}</div>
          {:else}
-            <div class="btn btn-warning" on:click={()=>{showAnswer = true; scrollBottom()}}>เฉลย</div>
+            <div class="btn btn-warning btn-sm" on:click={()=>{showAnswer = true; scrollBottom()}}>เฉลย</div>
             {#if showAnswer}
                <p>{content.answer}</p>
             {/if}

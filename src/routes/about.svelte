@@ -8,7 +8,7 @@
 
 <h1>Connect</h1>
 
-<div class="flex flex-row gap-4 w-full justify-around">
+<div class="flex flex-col sm:flex-row gap-4 w-full justify-around">
    <a href="//facebook.com/codebreakerTH" target="_blank">
       <FacebookIcon size=5x class='m-auto'/>
       facebook page

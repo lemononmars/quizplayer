@@ -2,6 +2,7 @@
    import {username} from '$lib/store'
 
    import type {ISpellingBee} from '$lib/interfaces'
+   import {numPuzzles} from '$lib/data/puzzles/spellingbee'
    import {search, isUpper, isLower} from '$lib/utils/thaiwords'
    import {todayDateThaiString} from '$lib/utils/date'
    import {XCircleIcon, PlayCircleIcon} from 'svelte-feather-icons'
@@ -200,7 +201,7 @@
    
    {#if isFinished}
       <div>
-         <a href="/puzzles/spellingbee/random">
+         <a href="/puzzles/spellingbee/{Math.floor(Math.random()*numPuzzles)}">
             <div class="btn btn-primary">สุ่มข้อใหม่</div>
          </a>
          <a href="/puzzles/spellingbee/leaderboard">

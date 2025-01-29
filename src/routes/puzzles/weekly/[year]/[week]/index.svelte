@@ -89,6 +89,9 @@
       logs = []
       isFinished = false
    }
+   function focusOnMount(node) {
+		node.focus();
+	}
 </script>
 
 <svelte:body on:keypress={handleKeyPress}/>
@@ -118,7 +121,7 @@
          <div class="flex flex-row flex-wrap justify-center my-2 gap-4 w-full px-4">
             <div class="input-group w-80" class:wiggle={isWiggle}>
                <div class="btn btn-accent no-animation"><KeyIcon size=20/></div>
-               <input class="input input-bordered text-3xl w-full transition-colors" type="text" bind:value={answer}>
+               <input class="input input-bordered text-3xl w-full transition-colors" type="text" bind:value={answer} use:focusOnMount>
                <div class="-translate-x-8 w-0 my-auto" class:hidden={answer === ''} on:click={()=>answer = ''}>
                   <XCircleIcon size=20/>
                </div>

@@ -79,7 +79,7 @@
    }
 </script>
 
-<h1>ตารางอันดับ ปริศนาประจำปี {year}</h1>
+<h1><a href="/puzzles/weekly">ตารางอันดับ ปริศนาประจำปี {year}</a></h1>
 
 <ul class="menu menu-vertical lg:menu-horizontal bg-base-200 rounded-box">
    <li><a on:click={()=>{curseason = 0}} class="{curseason === 0? 'active':''}">รวม</a></li>
@@ -89,23 +89,29 @@
  </ul>
 
 <div class="overflow-x-auto overflow-y-auto h-screen">
-   <table class="table table-zebra table-pin-rows table-pin-cols mx-auto border-collapse">
-      <thead>
-         <tr>
-            <th>ชื่อ</th>
-            <td>อันดับ</td>
-            <td>คะแนนรวม</td>
+   <table class="table table-compact mx-auto border-collapse">
+      <thead class="sticky top-0">
+         <tr class="text-center">
+            <th class="sticky left-0">ชื่อ</th>
+            <th class="text-accent">อันดับ</th>
+            <th class="text-secondary">คะแนนรวม</th>
             {#each weekArray as week}
-               <td>สัปดาห์ที่ {week}</td>
+               <th> #{week}</th>
             {/each}
          </tr>
       </thead>
       <tbody>
          {#each sortedNames as n, idx}
-            <tr>
-               <th class="text-nowrap max-w-40">{n}</th>
-               <th>{idx+1}</th>
-               <td>{getTotal(n, minweek, maxweek)}</td>
+            <tr class="text-center">
+               <td class="text-left sticky left-0">
+                  {#if n.length > 15}
+                     <div class="tooltip" data-tip="{n}">{n.slice(0,15) + '...'}</div>
+                  {:else}
+                     {n}
+                  {/if}
+               </td>
+               <td class="text-accent text-center">{idx+1}</td>
+               <td class="text-secondary text-center">{getTotal(n, minweek, maxweek)}</td>
                {#each weekArray as week}
                   <td>{findScore(n,week)}</td>
                {/each}

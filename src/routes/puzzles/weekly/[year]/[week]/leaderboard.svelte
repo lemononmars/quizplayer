@@ -5,10 +5,9 @@
       const {year, week} = params
       const res = await fetch('/api/leaderboard/weekly')
       const data: Leaderboard[] = await res.json()
-
       return {
          props: { 
-            data: data.filter(d=>d.puzzle_id == year+week),
+            data: data.filter(d=>d.puzzle_id % 100 == week && Math.floor(d.puzzle_id / 100) == year),
             year,
             week
          },
@@ -34,7 +33,9 @@
 
 <h1>ตารางอันดับ ปริศนาประจำสัปดาห์ที่ {week} ปี {year}</h1>
 
-<table class="table table-zebra mx-auto">
+<a href="/puzzles/weekly/{year}/leaderboard">ดูตารางอันดับของปี {year}</a>
+
+<table class="table table-zebra mx-auto sticky">
    <thead>
       <th>อันดับ</th>
       <th>ชื่อ</th>
@@ -45,8 +46,12 @@
    <tbody>
       {#each sortedData as d, idx}
          <tr class="{idx <=5 ? 'bg-slate-50':''}">
-            <td>{idx+1}</td>
-            <td>{d.name}</td>
+            <td class="text-accent text-center">{idx+1}</td>
+            {#if d.name.length > 15}
+                  <th><div class="tooltip" data-tip="{d.name}">{d.name.slice(0,20) + '...'}</div></th>
+               {:else}
+                  <th>{d.name}</th>
+               {/if}
             <td class="text-right">{toDateString(d.created_at)}</td>
             <td class="text-right">{toTimeString(d.created_at)}</td>
             <td>{d.score}</td>

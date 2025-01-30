@@ -75,7 +75,7 @@
          },
          body: JSON.stringify({
 				puzzle_type: 'weekly',
-            puzzle_id: year + week,
+            puzzle_id: year + ('0' + week).slice(-2),
             name: $username,
             score: 5
 			})

@@ -25,7 +25,7 @@
       {/each}
    </div>
    <div class="navbar-end">
-      <div class="btn btn-circle" on:click={()=>openModal = true}>
+      <div class="btn btn-circle hover:animate-spin" on:click={()=>openModal = true}>
          <SettingsIcon size=2x />
       </div>
    </div>

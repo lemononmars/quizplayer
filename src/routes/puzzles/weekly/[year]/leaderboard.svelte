@@ -89,10 +89,10 @@
  </ul>
 
 <div class="overflow-x-auto overflow-y-auto h-screen">
-   <table class="table table-compact mx-auto border-collapse">
-      <thead class="sticky top-0">
+   <table class="table table-compact mx-auto">
+      <thead class="sticky top-0 border-2">
          <tr class="text-center">
-            <th class="sticky left-0">ชื่อ</th>
+            <th>ชื่อ</th>
             <th class="text-accent">อันดับ</th>
             <th class="text-secondary">คะแนนรวม</th>
             {#each weekArray as week}

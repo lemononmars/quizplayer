@@ -12,6 +12,7 @@ export async function get({params}) {
   }
 
   return {
-    body: {year, week}
+    status:302,
+    redirect: "/puzzles/weekly"
   };
  }

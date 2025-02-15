@@ -12,6 +12,7 @@
 	<Navbar/>
 </header>
 
+
 <main class="overflow-x-clip" id="main">
 	<div>
    <slot />

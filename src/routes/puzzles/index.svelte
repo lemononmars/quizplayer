@@ -32,6 +32,11 @@
          description: "ปริศนาประจำสัปดาห์บนเพจ fb",
          icon: getImageURL('assets', 'adventure.png')
       },
+      {
+         type: "missingvowels",
+         description: "ทายคำโดยใช้แค่พยัญชนะ",
+         icon: getImageURL('assets', 'rebus.png')
+      },
       // {
       //    type: "adventure",
       //    description: "ตะลุยด่านไขรหัส",

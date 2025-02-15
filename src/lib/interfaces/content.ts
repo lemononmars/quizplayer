@@ -63,4 +63,10 @@ export interface IPuzzleHunt extends IContent{
    puzzles: IPuzzleHuntSingle[]
 }
 
-export type PuzzleType = 'alphabet' | 'rebus' | 'crossword' | 'puzzlehunt' | 'weekly'
+export interface IMissingVowels extends IContent{
+   type: 'missingvowels',
+   title: string,
+   answers: string[]
+}
+
+export type PuzzleType = 'alphabet' | 'rebus' | 'crossword' | 'puzzlehunt' | 'weekly' | 'missingvowels'

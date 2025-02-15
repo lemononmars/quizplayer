@@ -1,5 +1,5 @@
 {
-	"name": "simpleapp",
+	"name": "codebreakerwebsite",
 	"version": "0.0.1",
 	"scripts": {
 		"dev": "svelte-kit dev",

@@ -38,9 +38,10 @@
 	"type": "module",
 	"dependencies": {
 		"@line/bot-sdk": "^7.5.2",
-		"@supabase/supabase-js": "^1.35.4",
+		"@supabase/supabase-js": "^2.49.1",
 		"daisyui": "^2.17.0",
 		"discord.js": "^13.8.1",
+		"npm-check-updates": "^17.1.15",
 		"pusher": "^5.1.1-beta",
 		"three": "^0.142.0",
 		"threlte": "^3.13.0"

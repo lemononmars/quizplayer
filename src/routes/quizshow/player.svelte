@@ -3,7 +3,8 @@
    import {fade} from 'svelte/transition'
    import {loadSounds, type soundType} from '$lib/sounds/'
    import {VolumeXIcon, Volume2Icon} from 'svelte-feather-icons'
-   
+   //import {Head} from '$lib/components'
+
    import { createClient } from '@supabase/supabase-js'
 	import { username } from '$lib/store';
    const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY)
@@ -34,9 +35,11 @@
    
    interface PlayerInfo {
       username: string,
-      ID: number,
       color: number,
-      score: number
+      score: number,
+      wager?: number,
+      answer?: string,
+      result?: boolean
    }
 
    onMount(async()=>{
@@ -134,9 +137,8 @@
       let id = Math.floor(Math.random()*100)
       myInfo = {
          username: newUsername,
-         ID: id,
          color: myColor,
-         score: 0
+         score: 0,
       }
 
       channel.subscribe((status) => {
@@ -164,17 +166,20 @@
    }
 
    function submitWager() {
-      console.log('submit!')
       if(wager == 0) return
 
       channel.send({type: 'broadcast',event: 
          'submitWager',
          payload: { username: myInfo.username, wager },
       })
+      wager = 0
    }
 
    function submitAnswer() {
-
+      channel.send({type: 'broadcast',event: 
+         'submitAnswer',
+         payload: { username: myInfo.username, answer },
+      })
    }
 
    function addLog(message: string) {
@@ -205,11 +210,13 @@
    })
 </script>
 
+<!-- <Head {title}/> -->
+
 {#if isLoggedIn}
-   <div class="flex flex-row w-full my-8 justify-center items-center m-auto gap-3">
+   <div class="flex flex-row w-full my-8 justify-center items-center mx-auto gap-3">
       <div class="btn-group mx-2">
-         <div class="btn btn-{colors[myInfo.color]}">{myInfo.username}</div> 
-         <div class="btn btn-outline">{myInfo.score}</div>
+         <div class="btn btn-sm md:btn-md btn-{colors[myInfo.color]}">{myInfo.username}</div> 
+         <div class="btn btn-sm md:btn-md btn-outline">{myInfo.score}</div>
       </div>
       <button class="btn btn-sm btn-circle btn-outline" on:click={()=>soundOn = !soundOn}>
          {#if soundOn}
@@ -235,13 +242,13 @@
          {statusText}
       </div>
 
-   </div>
+   </div> 
 
-   <div class="flex flex-col md:flex-row gap-2 top-y-10 h-20 items-center bg-slate-800 w-full">
-      {#each playerList as p}
+   <div class="flex flex-col md:flex-row gap-2 p-4 md:h-20 items-center bg-slate-800 w-full">
+      {#each playerList as p} 
          <div class="btn-group mx-2">
-            <div class="btn btn-{colors[p.color]}">{p.username}</div> 
-            <div class="btn btn-outline">{p.score}</div>
+            <div class="btn btn-sm md:btn-md btn-{colors[p.color]}">{p.username}</div> 
+            <div class="btn btn-sm md:btn-md btn-outline">{p.score}</div>
          </div>
       {/each}
    </div>
@@ -286,7 +293,7 @@
    <div class="max-h-60 overflow-y-scroll text-left">
       <h3>Logs</h3>
       <ul>
-         {#each logs.reverse() as l}
+         {#each [...logs].reverse() as l}
             <li transition:fade>{l}</li>
          {/each}
       </ul>
@@ -295,10 +302,10 @@
 {:else}
    <!--  log in page -->
    <div class="flex flex-col items-center gap-y-6">
-      <h1>Type Username</h1>
+      <h1>Type Username:</h1>
          <input class="input input-bordered text-3xl w-80 justify-center text-{colors[myColor]}-content bg-{colors[myColor]}" type="text" placeholder="username" bind:value={newUsername}>
 
-      <h1>Player color</h1>
+      <h1>Choose player color:</h1>
 
       <div class="flex flex-row gap-2">
          {#each colors as c, index}

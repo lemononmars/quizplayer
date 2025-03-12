@@ -10,9 +10,11 @@
 
    interface PlayerInfo {
       username: string,
-      ID: number,
       color: number,
-      score: number
+      score: number,
+      wager?: number,
+      answer?: string,
+      result?: boolean
    }
 
    let sounds: any = {}
@@ -24,10 +26,21 @@
    let isDouble: boolean = false
 
    let round: number = 1
-   const scoreList: number[] = [100, 200, 300, 400, 500]
+   const scoreList: number[] = [200, 400, 600, 800, 1000]
    let score: number = 0
    $: totalScore = scoreList[score]*round
+
    let playerList: PlayerInfo[] = []
+   let showWager: boolean = false
+   let showAnswer: boolean = false
+
+   function getPlayer(username: string) {
+      for(var p of playerList)
+         if(p.username === username)
+            return p
+      // bad practice
+      return playerList[0]
+   }
 
    onMount(async()=>{
       sounds = loadSounds()
@@ -47,16 +60,32 @@
       channel.on('broadcast',{ event: 
          'submitWager' },
          (payload) => {
-            console.log('wager received!', isDouble, round)
             if(!isDouble && round < 3) return
 
             const {username, wager} = payload.payload
-            answerQueue = [...answerQueue, username + ': $' + wager]
+            const p = getPlayer(username)
+            if(p.wager) return
 
+            p.wager = wager
+            if(round < 3)
+               answerQueue = [...answerQueue, username]
+            
+            playerList = playerList
             channel.send({type:'broadcast', event: 
                'updateQueue',
                payload: {username: username + ': $' + wager}
             })
+         }
+      )
+
+      channel.on('broadcast',{ event: 
+         'submitAnswer' },
+         (payload) => {
+            if(round < 3) return
+
+            const {username, answer} = payload.payload
+            getPlayer(username).answer = answer
+            playerList = playerList
          }
       )
 
@@ -67,8 +96,7 @@
             const dupe = playerList.some(p=>p.username == newUsername)
             if(dupe) return
 
-            playerList.push(payload.payload.info)
-            playerList = playerList
+            playerList = [...playerList, payload.payload.info] 
             addLog(newUsername + ' joined')
 
             channel.send({
@@ -88,7 +116,6 @@
             addLog(leftPlayerUsername + ' left')
          }
       )
-
 
       channel.subscribe((status) => {
          if (status !== 'SUBSCRIBED') return null
@@ -117,30 +144,24 @@
    function correctAnswer() {
       if(answerQueue.length == 0) return
       playSound('correct')
-      const i = answerQueue[0].indexOf('$')
-      const s = i >= 0?
-         parseInt(answerQueue[0].slice(i+1)): 
-         totalScore
-      const u = i >= 0?
-         answerQueue[0].slice(0, answerQueue[0].indexOf(':')):
-         answerQueue[0]
-      updateScore(s, u)
+      const p = getPlayer(answerQueue[0])
+      const s = p.wager && p.wager > 0 ? p.wager: totalScore
+      
+      p.wager = 0
+      updateScore(s, p.username)
       resetButton()
    }
 
    function wrongAnswer() {
       if(answerQueue.length == 0) return
       playSound('incorrect')
-      const current = answerQueue.shift() || ''
-      const i = current.indexOf('$')
-      const s = i >= 0?
-         parseInt(current.slice(i+1)): 
-         totalScore
-      const u = i >= 0? 
-         current.slice(0, current.indexOf(':')):
-         current
-      updateScore(-s, u)
-      
+      const q = answerQueue.shift() || ''
+      const p = getPlayer(q)
+      const s = p.wager && p.wager > 0 ? p.wager: totalScore
+      // always reset just in case
+      p.wager = 0
+      updateScore(-s, p.username)
+
       answerQueue = answerQueue
    }
 
@@ -152,8 +173,21 @@
          payload: { score: s, username },
       })
       addLog(username + ' gets ' + s + ' points')
-      playerList.forEach(p => {
-         if(p.username === username) p.score += s
+      getPlayer(username).score += s
+      playerList = playerList
+   }
+
+   function returnScore() {
+      playerList.forEach(p=>{
+         if(!p.wager) p.wager = 0
+         const score = p.result? p.wager: -p.wager
+         p.score += score
+         channel.send({
+            type: 'broadcast',
+            event: 'updateScore',
+            payload: { score, username: p.username },
+         })
+         addLog(p.username + ' gets ' + score + ' points')
       })
       playerList = playerList
    }
@@ -232,6 +266,42 @@
                <input type="checkbox" class="toggle" bind:checked={isDouble} on:click={dailyDouble}/>
             </label>
          </div>
+      {:else}
+         <table class="table table-compact w-full">
+            <thead>
+               <tr>
+                  <th>Player</th>
+                  <th><div class="form-control">
+                     <label class="label cursor-pointer w-36 m-auto">
+                        <span class="label-text">Wager</span> 
+                        <input type="checkbox" class="toggle" bind:checked={showWager}/>
+                     </label>
+                  </div></th>
+                  <th><div class="form-control">
+                     <label class="label cursor-pointer w-36 m-auto">
+                        <span class="label-text">Answer</span> 
+                        <input type="checkbox" class="toggle" bind:checked={showAnswer}/>
+                     </label>
+                  </div></th>
+                  <th>Correct?</th>
+               </tr>
+            </thead>
+            <tbody>
+               {#each playerList as p}
+                  <tr>
+                     <th>{p.username}</th>
+                     <th>{showWager? '$' + (p.wager || '0'): p.wager? '✅':'🤔'}</th>
+                     <th>{showAnswer? p.answer || 'N/A': p.answer? '✅':'🤔'}</th> 
+                     <th><div class="form-control">
+                        <label class="label cursor-pointer">
+                          <input type="checkbox" bind:checked={p.result} class="checkbox checkbox-primary" />
+                        </label>
+                      </div></th>
+                  </tr>
+               {/each}
+            </tbody>
+         </table>
+         <button class="btn btn-success" on:click={returnScore}>Return score</button>
       {/if}
    </div>
 
@@ -261,7 +331,9 @@
          </div>
          <ol>
             {#each answerQueue as a, index}
-               <li class:text-3xl={index == 0}>{a}</li>
+               <li class:text-3xl={index == 0}>
+                  {a} {getPlayer(a).wager ? ' bets $' + getPlayer(a).wager:''}
+               </li>
             {/each}
          </ol>
       </div>
@@ -271,9 +343,9 @@
 
 
 <h3>Logs</h3>
-<div class="max-h-60 overflow-y-scroll">
+<div class="max-h-60 overflow-y-scroll text-left">
 <ul>
-   {#each logs.reverse() as l}
+   {#each [...logs].reverse() as l}
       <li transition:fade>{l}</li>
    {/each}
 </ul>

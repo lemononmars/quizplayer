@@ -23,9 +23,9 @@
 	<h1>หน้านี้ไม่มีอยู่จริงนะ</h1>
 	<h2>{status}</h2>
 
-	<!-- <p>{error.message}</p>
+	<p>{error.message}</p>
 
 	{#if dev && error.stack}
 		<pre>{error.stack}</pre>
-	{/if} -->
+	{/if}
 </div>

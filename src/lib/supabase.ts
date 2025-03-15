@@ -30,9 +30,9 @@ export const from = (table: string) => supabaseClient.from(table);
 export const fromBucket = (bucket: SupaStorageBucket) => supabaseClient.storage.from(bucket);
 
 export function getImageURL(type: SupaStorageBucket, url: string) {
-	return fromBucket(type).getPublicUrl(url).data?.publicURL
+	return fromBucket(type).getPublicUrl(url).data?.publicUrl
 }
 
 export function getPuzzleImageURL(type: PuzzleType, url: string) {
-	return fromBucket('puzzles').getPublicUrl(type + '/' + url).data?.publicURL
+	return fromBucket('puzzles').getPublicUrl(type + '/' + url).data?.publicUrl
 }

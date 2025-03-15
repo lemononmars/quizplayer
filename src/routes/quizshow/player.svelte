@@ -5,39 +5,72 @@
    import {VolumeXIcon, Volume2Icon} from 'svelte-feather-icons'
    //import {Head} from '$lib/components'
 
-   import { createClient } from '@supabase/supabase-js'
+   import { supabaseClient } from '$lib/supabase'
 	import { username } from '$lib/store';
-   const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY)
 
-   const channel = supabase.channel('quiz')
+   const channel = supabaseClient.channel('quiz')
    let myColor: number = 0
    const colors:string[] = ['primary', 'accent', 'info' , 'error']
    let myInfo: PlayerInfo = {
       username: 'Player',
-      ID: 0,
       color: 0,
-      score: 0
+      score: 0,
+      wager: 0
    }
+   let gameState = {
+      round: 1,
+      isLocked: false,
+      isDouble: false,
+      isWagering: false,
+      isAnswering: false
+   }
+
    let isLoggedIn: boolean = false
    let isPushed: boolean = false
-   let isLocked: boolean = false
+   let pushable: boolean = true
    let logs: string[] = []
    let answerQueue: string[] = []
-   let wager: number = 0
-   let answer: string = ''
+   let currentWager: number = 0
+   let currentAnswer: string = ''
 
    let soundOn: boolean = true
    let sounds: any = []
-   $: statusText = isLocked? 'LOCK': !isPushed? 'READY': answerQueue[0] === myInfo.username? 'Answer!':'Wait'
+   let statusText: string = 'READY'
+   let penaltyPeriod: boolean = false
+   const MAX_PENALTY: number = 2500
+   let penaltyTime: number = 0
+   let penaltyTimer: any = ''
+
+   function getPlayer(username: string) {
+      for(var p of playerList)
+         if(p.username === username)
+            return p
+      // bad practice
+      return playerList[0]
+   }
+
+   function updateStatusText() {
+      if(gameState.isLocked)
+         statusText = 'LOCK'
+      else if(answerQueue.length == 0)
+         if(isPushed)
+            statusText = 'Wait...'
+         else
+            statusText = 'READY'
+      else if(answerQueue[0] === myInfo.username)
+         statusText = 'Answer!'
+      else 
+         statusText = answerQueue[0]
+   }
 
    let playerList: PlayerInfo[] = []
-   let newUsername: string = $username || ''
+   let newUsername: string = $username !== 'code breaker'? $username: ''
    
    interface PlayerInfo {
       username: string,
       color: number,
       score: number,
-      wager?: number,
+      wager: number,
       answer?: string,
       result?: boolean
    }
@@ -47,20 +80,20 @@
 
       channel.on('broadcast',{ event: 
          'toggleLockButton' },
-         () => { 
-            isLocked = !isLocked
-            addLog('button ' + (isLocked?'':'un') + 'locked!')
-            if(!isLocked)
+         (payload) => { 
+            gameState.isLocked = payload.payload.isLocked
+            addLog('button ' + (gameState.isLocked?'':'un') + 'locked!')
+            if(!gameState.isLocked)
                playSound('ping')
+
+            updateStatusText()
          }
       )
 
       channel.on('broadcast', { event: 
          'resetButton' },
          () => { 
-            addLog('reset')
-            isPushed = false
-            answerQueue = []
+            resetQuestion()
          }
       )
 
@@ -68,19 +101,23 @@
          'updateScore' },
          (payload) => { 
             const {score, username} = payload.payload
-            addLog((score>0? '✅': score<0? '❌': 'o') + username + ' gets ' + score + ' points')
-            playerList.forEach(p => {
-               if(p.username === username) p.score += score
-            })
-            if(username === myInfo.username)
-               myInfo.score += score
+            addLog((score>0? '✅': score<0? '❌': '') + username + ' gets ' + score + ' points')
+            getPlayer(username).score += parseInt(score)
             playerList = playerList
-            if(score > 0) {
-               isPushed = false
-               answerQueue = []
-               playSound('correct')
+
+            if(username === myInfo.username) {
+               myInfo.score += parseInt(score)
+            }
+
+            if(gameState.isDouble || score > 0) {
+               resetQuestion()
+               if(score > 0)
+                  playSound('correct')
             }
             else {
+               // non-positive score -> other players can push
+               pushable = true
+               updateStatusText()
                answerQueue.shift()
                answerQueue = answerQueue
                if (score < 0)
@@ -91,11 +128,20 @@
          }
       )
 
-      channel.on('broadcast',{ event: 
+      channel.on('broadcast',{ event:
          'updateQueue' },
          (payload) => {
-            answerQueue.push(payload.payload.username)
-            answerQueue = answerQueue
+            pushable = false
+            answerQueue = [...answerQueue, payload.payload.username]
+            updateStatusText()
+         }
+      )
+
+      channel.on('broadcast', { event: 
+         'updateGameState' },
+         (payload) => { 
+            gameState = payload.payload.gameState
+            updateStatusText()
          }
       )
 
@@ -134,11 +180,13 @@
    })
 
    function login() {
-      let id = Math.floor(Math.random()*100)
       myInfo = {
          username: newUsername,
          color: myColor,
          score: 0,
+         wager: 0,
+         answer: '',
+         result: false
       }
 
       channel.subscribe((status) => {
@@ -156,9 +204,21 @@
    }
 
    function pushButton(){
+      
+      if(isPushed || !pushable) return 
+      if(gameState.isLocked) {
+         penaltyPeriod = true
+         penaltyTime = MAX_PENALTY
+         penaltyTimer = setInterval(()=>penaltyTime -= 100, 100)
+         setTimeout(()=>{
+            penaltyPeriod = false
+            clearInterval(penaltyTimer)
+         }, MAX_PENALTY)
+         playSound('timesup')
+         return // 2.5 s penalty  
+      }
+
       playSound('ping')
-      if(isPushed || isLocked) return
-      isPushed = true
       channel.send({type: 'broadcast',event: 
          'pushButton',
          payload: { username: myInfo.username },
@@ -166,22 +226,42 @@
    }
 
    function submitWager() {
-      if(wager == 0) return
+      if(currentWager == 0) return
+      if(currentWager > Math.abs(myInfo.score)) {
+         currentWager = 0
+         addLog("!!!wager invalid!!!")
+         return
+      }
+      myInfo.wager = currentWager
 
       channel.send({type: 'broadcast',event: 
          'submitWager',
-         payload: { username: myInfo.username, wager },
+         payload: { playerInfo: myInfo },
       })
-      wager = 0
    }
 
    function submitAnswer() {
+      myInfo.answer = currentAnswer
       channel.send({type: 'broadcast',event: 
          'submitAnswer',
-         payload: { username: myInfo.username, answer },
+         payload: { playerInfo: myInfo },
       })
    }
 
+   function resetQuestion() {
+      addLog('reset')
+      isPushed = false
+      pushable = true
+      gameState.isLocked = true
+      gameState.isDouble = false
+      currentWager = 0
+      myInfo.wager = 0
+      currentAnswer = ''
+      myInfo.answer = ''
+      answerQueue = []
+
+      updateStatusText()
+   }
    function addLog(message: string) {
       const timestamp = new Date().toLocaleTimeString()
       logs = [...logs, timestamp + ' - ' + message]
@@ -205,7 +285,7 @@
          'playerLeave',
          payload: { username: myInfo?.username },
       })
-      supabase.removeChannel(channel)
+      supabaseClient.removeChannel(channel)
       isLoggedIn = false
    })
 </script>
@@ -225,24 +305,68 @@
             <VolumeXIcon size=20 class="text-error"/>
          {/if}
       </button>
-
-      <label for="wager-modal" class="btn btn-outline btn-secondary btn-sm">Wager</label>
-      <label for="text-modal" class="btn btn-outline btn-secondary btn-sm">Type answer</label>
    </div>
 
-   <div class="flex flex-col items-center">
-      <div 
-         class="btn btn-circle w-60 h-60 text-4xl btn-outline m-8" 
-         class:btn-disabled={isPushed || isLocked} 
-         class:btn-warning={isPushed} 
-         class:btn-success={!isPushed && !isLocked} 
-         on:click={pushButton}
-         on:keypress={()=>{}}
-      >
-         {statusText}
-      </div>
+   <div class="flex flex-col w-full justify-center mx-auto items-center gap-2 my-4">
+      {#if gameState.isWagering || (gameState.isDouble && answerQueue[0] === myInfo.username)}
+         <div class="form-control">
+            <label class="input-group mx-auto">
+               <div class="btn btn-info">Wager</div>
+               <input 
+                  type="text"
+                  class="input input-bordered input-info" 
+                  placeholder="1-{myInfo.score}"
+                  bind:value={currentWager}
+               /> 
+               <div class="btn btn-success" 
+                  on:click={submitWager} 
+                  on:keypress={()=>{}}
+                  class:btn-disabled={myInfo.wager}
+               >
+                  Bet ${currentWager}!
+               </div>
+            </label>
+         </div>
+      {/if}
+      {#if gameState.isAnswering && myInfo.wager}
+         <div class="form-control">
+            <label class="input-group">
+               <div class="btn btn-accent">Answer</div>
+               <input 
+                  type="text"
+                  class="input input-bordered input-info" 
+                  placeholder="answer"
+                  bind:value={currentAnswer}
+               /> 
 
-   </div> 
+               <div class="btn btn-success" 
+                  on:click={submitAnswer} 
+                  on:keypress={()=>{}}
+                  class:btn-disabled={myInfo.answer}
+               >Submit!
+               </div>
+            </label>
+         </div>
+      {/if}
+
+      {#if (!gameState.isAnswering && !gameState.isWagering && (!gameState.isDouble || answerQueue[0] !== myInfo.username))}
+         {#if penaltyTime > 0}
+            <div class="radial-progress bg-error text-error-content border-4 border-error w-60 h-60 m-8 text-4xl" style="--value:{penaltyTime*100/MAX_PENALTY};">{((penaltyTime/1000)+'.0').slice(0,3)} s</div>
+         {:else}
+            <div 
+               class="btn btn-circle w-60 h-60 text-4xl m-8" 
+               class:btn-ghost={gameState.isLocked} 
+               class:btn-warning={!pushable || isPushed} 
+               class:btn-success={pushable && !isPushed && !gameState.isLocked} 
+               class:btn-outline={!pushable || gameState.isLocked}
+               on:click={pushButton}
+               on:keypress={()=>{}}
+            >
+               {statusText}
+            </div>
+         {/if}
+      {/if}
+   </div>
 
    <div class="flex flex-col md:flex-row gap-2 p-4 md:h-20 items-center bg-slate-800 w-full">
       {#each playerList as p} 
@@ -252,43 +376,6 @@
          </div>
       {/each}
    </div>
-
-   <h3>Answer Queue</h3>
-   <ol>
-      {#each answerQueue as a}
-         <li>{a}</li>
-      {/each}
-   </ol>
-
-   <input type="checkbox" id="wager-modal" class="modal-toggle" />
-   <div class="modal">
-   <div class="modal-box">
-      <h3 class="font-bold text-lg">Choose your wager!</h3>
-      <input type="range" bind:value={wager} 
-         min="0" max={myInfo.score} step="10"
-         class="range range-primary" /> 
-
-      <div class="modal-action justify-between">
-         <h3>${wager}</h3>
-         <label for="wager-modal" class="btn btn-error" on:click={()=>wager=0} on:keypress={()=>{}}>Cancel</label>
-         <label for="wager-modal" class="btn btn-success" on:click={submitWager} on:keypress={submitWager}>Bet ${wager}!</label>
-      </div>
-   </div>
-   </div>
-
-   <input type="checkbox" id="text-modal" class="modal-toggle" />
-   <div class="modal">
-   <div class="modal-box">
-      <h3 class="font-bold text-lg">Input your answer!</h3>
-      <input type="text text-outline" bind:value={answer} class="range range-primary" /> 
-
-      <div class="modal-action">
-         <label for="text-modal" class="btn btn-error" on:click={()=>answer=''} on:keypress={submitWager}>Cancel</label>
-         <label for="text-modal" class="btn btn-success" on:click={submitAnswer} on:keypress={submitWager}>Submit!</label>
-      </div>
-   </div>
-   </div>
-
 
    <div class="max-h-60 overflow-y-scroll text-left">
       <h3>Logs</h3>
@@ -303,8 +390,8 @@
    <!--  log in page -->
    <div class="flex flex-col items-center gap-y-6">
       <h1>Type Username:</h1>
-         <input class="input input-bordered text-3xl w-80 justify-center text-{colors[myColor]}-content bg-{colors[myColor]}" type="text" placeholder="username" bind:value={newUsername}>
-
+         <input class="input input-bordered text-3xl w-40 justify-center text-{colors[myColor]} text-center" type="text" placeholder="username" bind:value={newUsername}>
+         
       <h1>Choose player color:</h1>
 
       <div class="flex flex-row gap-2">

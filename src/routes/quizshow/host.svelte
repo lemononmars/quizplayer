@@ -3,16 +3,16 @@
    import {fade} from 'svelte/transition'
    import {LockIcon, UnlockIcon, CheckCircleIcon, XCircleIcon, Volume2Icon, VolumeXIcon, RefreshCwIcon} from 'svelte-feather-icons'
    import {loadSounds, type soundType} from '$lib/sounds'
-   import { createClient } from '@supabase/supabase-js'
-   const supabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY)
 
-   const channel = supabase.channel('quiz')
+   import { supabaseClient } from '$lib/supabase'
+
+   const channel = supabaseClient.channel('quiz')
 
    interface PlayerInfo {
       username: string,
       color: number,
       score: number,
-      wager?: number,
+      wager: number,
       answer?: string,
       result?: boolean
    }
@@ -22,17 +22,20 @@
    const colors:string[] = ['primary', 'accent', 'info' , 'error']
    let logs: string[] = []
    let answerQueue: string[] = []
-   let isLocked: boolean = false
-   let isDouble: boolean = false
 
-   let round: number = 1
+   let gameState = {
+      round: 1,
+      isLocked: false,
+      isDouble: false,
+      isWagering: false,
+      isAnswering: false
+   }
    const scoreList: number[] = [200, 400, 600, 800, 1000]
    let score: number = 0
-   $: totalScore = scoreList[score]*round
+   $: totalScore = scoreList[score]*gameState.round
 
    let playerList: PlayerInfo[] = []
-   let showWager: boolean = false
-   let showAnswer: boolean = false
+   let currentDouble: boolean = false
 
    function getPlayer(username: string) {
       for(var p of playerList)
@@ -47,43 +50,29 @@
       channel.on('broadcast',{ event: 
          'pushButton' },
          (payload) => {
-            const u = payload.payload.username
-            answerQueue = [...answerQueue, u]
-
-            channel.send({type:'broadcast', event: 
-               'updateQueue',
-               payload: {username: u}
-            })
+            updateQueue(payload.payload.username)
          }
       )
 
       channel.on('broadcast',{ event: 
          'submitWager' },
          (payload) => {
-            if(!isDouble && round < 3) return
-
-            const {username, wager} = payload.payload
-            const p = getPlayer(username)
-            if(p.wager) return
-
-            p.wager = wager
-            if(round < 3)
-               answerQueue = [...answerQueue, username]
+            if(!gameState.isWagering && !gameState.isDouble) return
             
+            const {username, wager} = payload.payload.playerInfo
+            const p = getPlayer(username)
+
+            p.wager = parseInt(wager)
             playerList = playerList
-            channel.send({type:'broadcast', event: 
-               'updateQueue',
-               payload: {username: username + ': $' + wager}
-            })
          }
       )
 
       channel.on('broadcast',{ event: 
          'submitAnswer' },
          (payload) => {
-            if(round < 3) return
+            if(!gameState.isAnswering) return
 
-            const {username, answer} = payload.payload
+            const {username, answer} = payload.payload.playerInfo
             getPlayer(username).answer = answer
             playerList = playerList
          }
@@ -104,6 +93,8 @@
                event: 'sharePlayerList',
                payload: {playerList}
             })
+
+            updateGameState()
          }
       )
 
@@ -123,17 +114,20 @@
    })
 
    function toggleLockButton(){
-      isLocked = !isLocked
+      gameState.isLocked = !gameState.isLocked
       channel.send({
          type: 'broadcast',
          event: 'toggleLockButton',
-         payload: {}
+         payload: {isLocked: gameState.isLocked}
       })
    }
 
    function resetButton(){
       playSound('timesup')
       answerQueue = []
+      gameState.isLocked = true // locked as default
+      gameState.isDouble = false
+      currentDouble = false
       channel.send({
          type: 'broadcast',
          event: 'resetButton',
@@ -148,6 +142,7 @@
       const s = p.wager && p.wager > 0 ? p.wager: totalScore
       
       p.wager = 0
+      gameState.isDouble = false
       updateScore(s, p.username)
       resetButton()
    }
@@ -157,10 +152,12 @@
       playSound('incorrect')
       const q = answerQueue.shift() || ''
       const p = getPlayer(q)
-      const s = p.wager && p.wager > 0 ? p.wager: totalScore
+      const s = (p.wager && p.wager > 0) ? p.wager: totalScore
       // always reset just in case
       p.wager = 0
       updateScore(-s, p.username)
+      if(gameState.isDouble)
+         resetButton()
 
       answerQueue = answerQueue
    }
@@ -172,24 +169,44 @@
          event: 'updateScore',
          payload: { score: s, username },
       })
-      addLog(username + ' gets ' + s + ' points')
-      getPlayer(username).score += s
+      addLog((score>0? '✅': score<0? '❌': '') + username + ' gets ' + s + ' points')
+
+      const p = getPlayer(username)
+      p.score += s
+      p.wager = 0
+      p.answer = ''
       playerList = playerList
    }
 
-   function returnScore() {
-      playerList.forEach(p=>{
-         if(!p.wager) p.wager = 0
-         const score = p.result? p.wager: -p.wager
-         p.score += score
-         channel.send({
-            type: 'broadcast',
-            event: 'updateScore',
-            payload: { score, username: p.username },
-         })
-         addLog(p.username + ' gets ' + score + ' points')
+   function updateQueue(u: string) {
+      if(answerQueue.length > 0) return // remove if queueing is allowed
+      answerQueue = [...answerQueue, u]
+
+      channel.send({type:'broadcast', event: 
+         'updateQueue',
+         payload: {username: u}
       })
-      playerList = playerList
+   }
+
+   function updateRound(r: number) {
+      gameState.round = r
+      if(r == 3) {
+         gameState.isAnswering = true
+         gameState.isWagering = true
+      }
+      else {
+         gameState.isAnswering = false
+         gameState.isWagering = false
+      }
+      updateGameState()
+   }
+
+   function updateGameState() {
+      channel.send({
+         type: 'broadcast',
+         event: 'updateGameState',
+         payload: { gameState },
+      })
    }
 
    function addLog(message: string) {
@@ -202,8 +219,10 @@
    }
 
    function dailyDouble() {
-      if(!isDouble)
+      if(!currentDouble)
          playSound('double')
+      gameState.isDouble = !currentDouble
+      updateGameState()
    }
 
    function playSound(option: soundType) {
@@ -220,7 +239,7 @@
    }
 
    onDestroy(()=>{
-      supabase.removeChannel(channel)
+      supabaseClient.removeChannel(channel)
    })
 </script>
 
@@ -235,8 +254,8 @@
    </button>
 
    <div class="btn-group">
-      <div class="btn w-40 text-xl btn-error" class:btn-outline={!isLocked} on:click={toggleLockButton} on:keypress={()=>{}}>
-         {#if isLocked}
+      <div class="btn w-40 text-xl btn-error" class:btn-outline={!gameState.isLocked} on:click={toggleLockButton} on:keypress={()=>{}}>
+         {#if gameState.isLocked}
             <LockIcon size=30/>
          {:else}
             <UnlockIcon size=30/>
@@ -247,61 +266,52 @@
       </div>
    </div>
    <div class="btn-group">
-      <button class="btn btn-outline" class:btn-active={round === 1} on:click={()=>round = 1}>Round 1</button>
-      <button class="btn btn-outline" class:btn-active={round === 2} on:click={()=>round = 2}>Round 2</button>
-      <button class="btn btn-outline" class:btn-active={round === 3} on:click={()=>round = 3}>Final</button>
+      <button class="btn btn-outline" class:btn-active={gameState.round === 1} on:click={()=>updateRound(1)}>Round 1</button>
+      <button class="btn btn-outline" class:btn-active={gameState.round === 2} on:click={()=>updateRound(2)}>Round 2</button>
+      <button class="btn btn-outline" class:btn-active={gameState.round === 3} on:click={()=>updateRound(3)}>Final</button>
    </div>
 
    <div>
-      {#if round < 3}
+      {#if gameState.round < 3}
          <div class="btn-group">
             {#each scoreList as s, index}
-               <button class="btn" class:btn-info={index == score} class:btn-outline={index != score} on:click={()=>score = index}>{s*round}</button>
+               <button class="btn" class:btn-info={index == score} class:btn-outline={index != score} on:click={()=>score = index}>{s*gameState.round}</button>
             {/each}
          </div>
 
          <div class="form-control">
             <label class="label cursor-pointer w-36 m-auto">
-               <span class="label-text">Double</span> 
-               <input type="checkbox" class="toggle" bind:checked={isDouble} on:click={dailyDouble}/>
+               <span class="label-text" class:text-success={gameState.isDouble}>Double</span> 
+               <input type="checkbox" class="toggle" bind:checked={currentDouble} on:click={dailyDouble}/>
             </label>
          </div>
+
       {:else}
-         <table class="table table-compact w-full">
-            <thead>
-               <tr>
-                  <th>Player</th>
-                  <th><div class="form-control">
-                     <label class="label cursor-pointer w-36 m-auto">
-                        <span class="label-text">Wager</span> 
-                        <input type="checkbox" class="toggle" bind:checked={showWager}/>
-                     </label>
-                  </div></th>
-                  <th><div class="form-control">
-                     <label class="label cursor-pointer w-36 m-auto">
-                        <span class="label-text">Answer</span> 
-                        <input type="checkbox" class="toggle" bind:checked={showAnswer}/>
-                     </label>
-                  </div></th>
-                  <th>Correct?</th>
-               </tr>
-            </thead>
-            <tbody>
-               {#each playerList as p}
-                  <tr>
-                     <th>{p.username}</th>
-                     <th>{showWager? '$' + (p.wager || '0'): p.wager? '✅':'🤔'}</th>
-                     <th>{showAnswer? p.answer || 'N/A': p.answer? '✅':'🤔'}</th> 
-                     <th><div class="form-control">
-                        <label class="label cursor-pointer">
-                          <input type="checkbox" bind:checked={p.result} class="checkbox checkbox-primary" />
-                        </label>
-                      </div></th>
-                  </tr>
-               {/each}
-            </tbody>
-         </table>
-         <button class="btn btn-success" on:click={returnScore}>Return score</button>
+         <div class="flex flex-col gap-2 items-center bg-slate-600 p-4">
+            {#each playerList as p}
+               {#if p.wager}
+                  <div class="flex flex-row items-justify">
+                     <div class="btn-group mx-2">
+                        <button class="btn btn-sm md:btn-md btn-primary" on:click={()=>updateScore(p.wager, p.username)}>
+                           <CheckCircleIcon size=30/>
+                        </button>
+                        <button class="btn btn-sm md:btn-md btn-error" on:click={()=>updateScore(-p.wager, p.username)}>
+                           <XCircleIcon size=30/>
+                        </button>
+                     </div>
+                     <div class="btn-group mx-2">
+                        <div 
+                           class="btn btn-sm md:btn-md btn-{colors[p.color]}" 
+                           on:click={()=>updateQueue(p.username)}
+                           on:keypress={()=>{}}
+                        >{p.username}</div> 
+                        <div class="btn btn-sm md:btn-md btn-outline">{p.wager}</div>
+                        <div class="btn btn-sm md:btn-md btn-outline btn-accent">{p.answer || '🤔'}</div>
+                     </div>
+                  </div>
+               {/if}
+            {/each}
+         </div>
       {/if}
    </div>
 
@@ -309,17 +319,17 @@
       {#each playerList as p}
          <div class="btn-group mx-2">
             <div 
-               class="btn btn-{colors[p.color]}" 
-               on:click={()=>answerQueue = [...answerQueue, p.username]}
+               class="btn btn-sm md:btn-md btn-{colors[p.color]}" 
+               on:click={()=>updateQueue(p.username)}
                on:keypress={()=>{}}
             >{p.username}</div> 
-            <div class="btn btn-outline">{p.score}</div>
+            <div class="btn btn-sm md:btn-md btn-outline">{p.score}</div>
          </div>
       {/each}
    </div>
    
    {#if answerQueue.length > 0}
-      <div class="flex flex-col m-auto">
+      <div class="flex flex-col m-auto items-center gap-y-2">
          <div class="btn-group">
             <button class="btn btn-outline btn-primary" on:click={correctAnswer}>
                <CheckCircleIcon size=30/>
@@ -329,13 +339,16 @@
             </button>
             <button class="btn btn-outline btn-warning" on:click={pass}>Pass</button>
          </div>
-         <ol>
-            {#each answerQueue as a, index}
-               <li class:text-3xl={index == 0}>
-                  {a} {getPlayer(a).wager ? ' bets $' + getPlayer(a).wager:''}
-               </li>
+
+         {#key playerList}
+            {#each answerQueue as a}
+               {@const p = getPlayer(a)}
+               <div class="btn btn-sm btn-{colors[p.color]}">
+                  {p.username} {p.wager? ': ' + p.wager:''}
+               </div> 
             {/each}
-         </ol>
+         {/key}
+
       </div>
    {/if}
 </div>

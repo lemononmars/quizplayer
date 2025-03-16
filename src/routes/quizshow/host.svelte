@@ -169,13 +169,18 @@
          event: 'updateScore',
          payload: { score: s, username },
       })
-      addLog((score>0? '✅': score<0? '❌': '') + username + ' gets ' + s + ' points')
+      addLog((s>0? '✅': s<0? '❌': '') + username + ' gets ' + s + ' points')
 
       const p = getPlayer(username)
       p.score += s
       p.wager = 0
       p.answer = ''
       playerList = playerList
+
+      if(gameState.isDouble) {
+         gameState.isDouble = false
+         currentDouble = false
+      }
    }
 
    function updateQueue(u: string) {

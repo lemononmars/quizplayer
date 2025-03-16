@@ -38,6 +38,7 @@
    let statusText: string = 'READY'
    let penaltyPeriod: boolean = false
    const MAX_PENALTY: number = 2500
+   const MAX_ANSWER: number = 5000
    let penaltyTime: number = 0
    let penaltyTimer: any = ''
 
@@ -45,7 +46,7 @@
       for(var p of playerList)
          if(p.username === username)
             return p
-      // bad practice
+      // shouldn't get here, but just in case
       return playerList[0]
    }
 
@@ -53,7 +54,7 @@
       if(gameState.isLocked)
          statusText = 'LOCK'
       else if(answerQueue.length == 0)
-         if(isPushed)
+         if(!pushable)
             statusText = 'Wait...'
          else
             statusText = 'READY'
@@ -72,7 +73,6 @@
       score: number,
       wager: number,
       answer?: string,
-      result?: boolean
    }
 
    onMount(async()=>{
@@ -116,14 +116,15 @@
             }
             else {
                // non-positive score -> other players can push
-               pushable = true
-               updateStatusText()
+               if(username !== myInfo.username)
+                  pushable = true
                answerQueue.shift()
                answerQueue = answerQueue
                if (score < 0)
                   playSound('incorrect')
                else
                   playSound('timesup')
+               updateStatusText()
             }
          }
       )
@@ -185,8 +186,7 @@
          color: myColor,
          score: 0,
          wager: 0,
-         answer: '',
-         result: false
+         answer: ''
       }
 
       channel.subscribe((status) => {
@@ -206,6 +206,7 @@
    function pushButton(){
       
       if(isPushed || !pushable) return 
+
       if(gameState.isLocked) {
          penaltyPeriod = true
          penaltyTime = MAX_PENALTY
@@ -216,6 +217,9 @@
          }, MAX_PENALTY)
          playSound('timesup')
          return // 2.5 s penalty  
+      }
+      else {
+         isPushed = true
       }
 
       playSound('ping')
@@ -311,19 +315,25 @@
       {#if gameState.isWagering || (gameState.isDouble && answerQueue[0] === myInfo.username)}
          <div class="form-control">
             <label class="input-group mx-auto">
-               <div class="btn btn-info">Wager</div>
+               <div class="btn btn-info">💰</div>
                <input 
                   type="text"
-                  class="input input-bordered input-info" 
+                  class="input input-bordered text-xl input-info w-20" 
+                  class:text-error={currentWager > Math.abs(myInfo.score)}
+                  disabled={!!myInfo.wager}
                   placeholder="1-{myInfo.score}"
                   bind:value={currentWager}
                /> 
-               <div class="btn btn-success" 
+               <div class="btn" 
                   on:click={submitWager} 
                   on:keypress={()=>{}}
-                  class:btn-disabled={myInfo.wager}
+                  class:btn-success={currentWager <= Math.abs(myInfo.score)}
+                  class:btn-disabled={currentWager > Math.abs(myInfo.score) || myInfo.wager}
                >
-                  Bet ${currentWager}!
+                  {currentWager <= Math.abs(myInfo.score)?      
+                  'Wager $' + currentWager:
+                  'Invalid' }
+                  
                </div>
             </label>
          </div>
@@ -335,7 +345,8 @@
                <input 
                   type="text"
                   class="input input-bordered input-info" 
-                  placeholder="answer"
+                  disabled={!!myInfo.answer}
+                  placeholder="type answer"
                   bind:value={currentAnswer}
                /> 
 
@@ -343,7 +354,7 @@
                   on:click={submitAnswer} 
                   on:keypress={()=>{}}
                   class:btn-disabled={myInfo.answer}
-               >Submit!
+               >lock in
                </div>
             </label>
          </div>
@@ -355,10 +366,10 @@
          {:else}
             <div 
                class="btn btn-circle w-60 h-60 text-4xl m-8" 
-               class:btn-ghost={gameState.isLocked} 
-               class:btn-warning={!pushable || isPushed} 
+               class:btn-ghost={gameState.isLocked || (isPushed && !pushable)}
+               class:btn-outline={gameState.isLocked || !pushable}
+               class:btn-warning={isPushed} 
                class:btn-success={pushable && !isPushed && !gameState.isLocked} 
-               class:btn-outline={!pushable || gameState.isLocked}
                on:click={pushButton}
                on:keypress={()=>{}}
             >

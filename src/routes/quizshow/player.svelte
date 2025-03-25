@@ -214,6 +214,7 @@
          setTimeout(()=>{
             penaltyPeriod = false
             clearInterval(penaltyTimer)
+            penaltyTime = 0
          }, MAX_PENALTY)
          playSound('timesup')
          return // 2.5 s penalty  

@@ -37,6 +37,10 @@
    let playerList: PlayerInfo[] = []
    let currentDouble: boolean = false
 
+   const MAX_ANSWER: number = 5000
+   let answerTime: number = 0
+   let answerTimer: any = ''
+
    function getPlayer(username: string) {
       for(var p of playerList)
          if(p.username === username)
@@ -83,10 +87,12 @@
          (payload) => {
             const newUsername = payload.payload.info.username
             const dupe = playerList.some(p=>p.username == newUsername)
-            if(dupe) return
-
-            playerList = [...playerList, payload.payload.info] 
-            addLog(newUsername + ' joined')
+            if(!dupe) {
+               playerList = [...playerList, payload.payload.info] 
+               addLog(newUsername + ' joined')
+            }
+            else
+               addLog(newUsername + ' rejoined')
 
             channel.send({
                type: 'broadcast',
@@ -102,9 +108,9 @@
          'playerLeave' },
          (payload) => {
             const leftPlayerUsername = payload.payload.username
-            playerList = playerList.filter(p => p !== leftPlayerUsername)
-            playerList = playerList
-            addLog(leftPlayerUsername + ' left')
+            //playerList = playerList.filter(p => p !== leftPlayerUsername)
+            //playerList = playerList
+            addLog(leftPlayerUsername + ' disconnected')
          }
       )
 
@@ -163,6 +169,7 @@
    }
 
    function updateScore(s: number, username: string) {
+      clearTimeout(answerTimer)
 
       channel.send({
          type: 'broadcast',
@@ -184,7 +191,18 @@
    }
 
    function updateQueue(u: string) {
+      addLog(u + ' pushed')
       if(answerQueue.length > 0) return // remove if queueing is allowed
+
+      answerTimer = setTimeout(()=>{
+         gameState.isLocked = true
+         gameState = gameState
+         playSound('timesup')
+         channel.send({type:'broadcast', event: 
+            'toggleLockedButton',
+            payload: {isLocked: true}
+         })
+      }, MAX_ANSWER)
       answerQueue = [...answerQueue, u]
 
       channel.send({type:'broadcast', event: 

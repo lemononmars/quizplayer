@@ -37,7 +37,7 @@
    let sounds: any = []
    let statusText: string = 'READY'
    let penaltyPeriod: boolean = false
-   const MAX_PENALTY: number = 2500
+   const MAX_PENALTY: number = 250 // 0.25 seconds
    const MAX_ANSWER: number = 5000
    let penaltyTime: number = 0
    let penaltyTimer: any = ''
@@ -83,9 +83,6 @@
          (payload) => { 
             gameState.isLocked = payload.payload.isLocked
             addLog('button ' + (gameState.isLocked?'':'un') + 'locked!')
-            if(!gameState.isLocked)
-               playSound('ping')
-
             updateStatusText()
          }
       )
@@ -146,12 +143,17 @@
          }
       )
 
-      // received the first time this user joins
+      // received the first time this user joins from host
       channel.on('broadcast',{event: 
          'sharePlayerList'},
          (payload) => {
             if(playerList.length > 1) return
             playerList = payload.payload.playerList
+            // when reconnected, update your own info
+            for(var p of playerList) {
+               if(p.username === myInfo.username)
+                  myInfo = p 
+            }
          }
       )
 
@@ -221,6 +223,11 @@
       }
       else {
          isPushed = true
+         setTimeout(()=>{
+            gameState.isLocked = true
+            gameState = gameState
+            playSound('timesup')
+         }, MAX_ANSWER)
       }
 
       playSound('ping')

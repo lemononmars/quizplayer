@@ -1,10 +1,23 @@
 <script lang=ts>
-   import Logo3D from "$lib/components/Logo3D.svelte";
+   enum State {
+      'ENTER',
+      'HOST',
+      'PLAYER',
+      'AUDIENCE'
+   }
+
+   let state = State.ENTER
 </script>
 
 <svelte:head>
-   <title>Code Breaker</title>
+   <title>Let's Quiz</title>
 </svelte:head>
-<h1>Welcome to Code Breaker</h1>
 
-<Logo3D/>
+{#if state == State.ENTER} 
+   <h1>Choose role</h1>
+   <button class="btn" on:click={()=>state = State.HOST}>Host</button>
+   <button class="btn" on:click={()=>state = State.PLAYER}>Play</button>
+{:else if state === State.HOST}
+   <h2>Choose game</h2>
+   <button class="btn" on:click={()=>state = State.HOST}>Jeopardy</button>
+{/if}

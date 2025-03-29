@@ -1,29 +1,35 @@
 <script lang=ts>
    import {onMount, onDestroy} from 'svelte'
    import {fade} from 'svelte/transition'
+   import {type PlayerInfo, type GameState, type RoomInfo} from '$lib/interfaces/jeopardy'
    import {loadSounds, type soundType} from '$lib/sounds/'
    import {VolumeXIcon, Volume2Icon} from 'svelte-feather-icons'
    //import {Head} from '$lib/components'
 
    import { supabaseClient } from '$lib/supabase'
-	import { username } from '$lib/store';
+	import { username, storeGameState, storeMyInfo, storeRoomInfo } from '$lib/store';
 
-   const channel = supabaseClient.channel('quiz')
+   export let id: string
+   const channel = supabaseClient.channel('quiz-' + id)
    let myColor: number = 0
    const colors:string[] = ['primary', 'accent', 'info' , 'error']
-   let myInfo: PlayerInfo = {
-      username: 'Player',
-      color: 0,
-      score: 0,
-      wager: 0
-   }
-   let gameState = {
-      round: 1,
-      isLocked: false,
-      isDouble: false,
-      isWagering: false,
-      isAnswering: false
-   }
+
+   let myInfo: PlayerInfo = $storeMyInfo !== ''? JSON.parse($storeMyInfo): 
+      {
+         username: 'Player',
+         color: 0,
+         score: 0,
+         wager: 0
+      }
+
+   let gameState: GameState = $storeGameState!== '' ? JSON.parse($storeGameState): 
+      {
+         round: 1,
+         isLocked: false,
+         isDouble: false,
+         isWagering: false,
+         isAnswering: false
+      }
 
    let isLoggedIn: boolean = false
    let isPushed: boolean = false
@@ -67,13 +73,6 @@
    let playerList: PlayerInfo[] = []
    let newUsername: string = $username !== 'code breaker'? $username: ''
    
-   interface PlayerInfo {
-      username: string,
-      color: number,
-      score: number,
-      wager: number,
-      answer?: string,
-   }
 
    onMount(async()=>{
       sounds = loadSounds()
@@ -102,9 +101,9 @@
             getPlayer(username).score += parseInt(score)
             playerList = playerList
 
-            if(username === myInfo.username) {
-               myInfo.score += parseInt(score)
-            }
+            // if(username === myInfo.username) {
+            //    myInfo.score += parseInt(score)
+            // }
 
             if(gameState.isDouble || score > 0) {
                resetQuestion()
@@ -212,7 +211,7 @@
       if(gameState.isLocked) {
          penaltyPeriod = true
          penaltyTime = MAX_PENALTY
-         penaltyTimer = setInterval(()=>penaltyTime -= 100, 100)
+         penaltyTimer = setInterval(()=>penaltyTime -= 10, 10)
          setTimeout(()=>{
             penaltyPeriod = false
             clearInterval(penaltyTimer)
@@ -295,7 +294,7 @@
    onDestroy(()=>{
       channel.send({type: 'broadcast', event: 
          'playerLeave',
-         payload: { username: myInfo?.username },
+         payload: { username: myInfo.username },
       })
       supabaseClient.removeChannel(channel)
       isLoggedIn = false
@@ -303,6 +302,7 @@
 </script>
 
 <!-- <Head {title}/> -->
+Room ID: {id}
 
 {#if isLoggedIn}
    <div class="flex flex-row w-full my-8 justify-center items-center mx-auto gap-3">
@@ -370,7 +370,7 @@
 
       {#if (!gameState.isAnswering && !gameState.isWagering && (!gameState.isDouble || answerQueue[0] !== myInfo.username))}
          {#if penaltyTime > 0}
-            <div class="radial-progress bg-error text-error-content border-4 border-error w-60 h-60 m-8 text-4xl" style="--value:{penaltyTime*100/MAX_PENALTY};">{((penaltyTime/1000)+'.0').slice(0,3)} s</div>
+            <div class="radial-progress bg-error text-error-content border-4 border-error w-60 h-60 m-8 text-4xl" style="--value:{penaltyTime*100/MAX_PENALTY};">PENALTY</div>
          {:else}
             <div 
                class="btn btn-circle w-60 h-60 text-4xl m-8" 

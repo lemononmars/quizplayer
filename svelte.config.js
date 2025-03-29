@@ -1,8 +1,6 @@
 import vercel from '@sveltejs/adapter-vercel';
 import preprocess from 'svelte-preprocess';
 
-import { mdsvex } from 'mdsvex'
-
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
 	// Consult https://github.com/sveltejs/svelte-preprocess
@@ -10,10 +8,8 @@ const config = {
 	extensions: [
 		'.svelte',
 		'.svx',
-		'.md'
 	],
 	preprocess: [
-		mdsvex({ extensions: ['.svx', '.md'] }),
 		preprocess({
 			postcss: true,
 		}),
@@ -33,11 +29,6 @@ const config = {
 		  // instead of creating a single one for the entire app
 		  split: false
 		}),
-		vite: {
-			ssr: {
-			  noExternal: ['three']
-			}
-		 }
 	 }
 };
 

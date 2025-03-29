@@ -1,6 +1,5 @@
 <script>
    import "../app.css";
-   import Navbar from "$lib/components/Navbar.svelte";
    import { navigating } from '$app/stores';
 	import PageNavIndicator from '$lib/components/PageNavIndicator.svelte';
 </script>
@@ -9,7 +8,6 @@
 	{#if $navigating}
 		<PageNavIndicator />
 	{/if}
-	<Navbar/>
 </header>
 
 

@@ -1,21 +1,14 @@
 <script lang=ts>
    import {onMount, onDestroy} from 'svelte'
    import {fade} from 'svelte/transition'
+   import {type PlayerInfo, type GameState, type RoomInfo} from '$lib/interfaces/jeopardy'
    import {LockIcon, UnlockIcon, CheckCircleIcon, XCircleIcon, Volume2Icon, VolumeXIcon, RefreshCwIcon} from 'svelte-feather-icons'
    import {loadSounds, type soundType} from '$lib/sounds'
 
    import { supabaseClient } from '$lib/supabase'
 
-   const channel = supabaseClient.channel('quiz')
-
-   interface PlayerInfo {
-      username: string,
-      color: number,
-      score: number,
-      wager: number,
-      answer?: string,
-      result?: boolean
-   }
+   export let id: string
+   const channel =  supabaseClient.channel('quiz-' + id)
 
    let sounds: any = {}
    let soundOn: boolean = true
@@ -23,7 +16,7 @@
    let logs: string[] = []
    let answerQueue: string[] = []
 
-   let gameState = {
+   let gameState: GameState = {
       round: 1,
       isLocked: false,
       isDouble: false,
@@ -108,8 +101,6 @@
          'playerLeave' },
          (payload) => {
             const leftPlayerUsername = payload.payload.username
-            //playerList = playerList.filter(p => p !== leftPlayerUsername)
-            //playerList = playerList
             addLog(leftPlayerUsername + ' disconnected')
          }
       )
@@ -265,6 +256,8 @@
       supabaseClient.removeChannel(channel)
    })
 </script>
+
+<h1>ROOM: {id}</h1>
 
 <div class="flex flex-col items-center gap-y-2 my-10 w-full">
 

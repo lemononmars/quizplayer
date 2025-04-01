@@ -2,7 +2,7 @@
    import type {IAlphabet} from '$lib/interfaces'
    import LetterInput from '$lib/components/LetterInput.svelte';
 
-   import TitleTab from '$lib/components/TitleTab.svelte';
+   import TitleTab from '$lib/components/WhiteBoardInput.svelte';
    import {fly} from 'svelte/transition'
 
    export let content: IAlphabet

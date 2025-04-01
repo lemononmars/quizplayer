@@ -3,11 +3,12 @@
    import {fade} from 'svelte/transition'
    import {type PlayerInfo, type GameState, type RoomInfo} from '$lib/interfaces/jeopardy'
    import {loadSounds, type soundType} from '$lib/sounds/'
-   import {VolumeXIcon, Volume2Icon} from 'svelte-feather-icons'
-   //import {Head} from '$lib/components'
+   import {VolumeXIcon, Volume2Icon, PenToolIcon, XCircleIcon, CheckCircleIcon} from 'svelte-feather-icons'
 
+   
    import { supabaseClient } from '$lib/supabase'
 	import { username, storeGameState, storeMyInfo, storeRoomInfo } from '$lib/store';
+	import WhiteBoard from '$lib/components/WhiteBoardInput.svelte';
 
    export let id: string
    const channel = supabaseClient.channel('quiz-' + id)
@@ -39,7 +40,7 @@
    let currentWager: number = 0
    let currentAnswer: string = ''
 
-   let soundOn: boolean = true
+   let soundOn: boolean = false 
    let sounds: any = []
    let statusText: string = 'READY'
    let penaltyPeriod: boolean = false
@@ -101,9 +102,9 @@
             getPlayer(username).score += parseInt(score)
             playerList = playerList
 
-            // if(username === myInfo.username) {
-            //    myInfo.score += parseInt(score)
-            // }
+            if(username === myInfo.username) {
+               clearTimeout(penaltyTimer)
+            }
 
             if(gameState.isDouble || score > 0) {
                resetQuestion()
@@ -185,10 +186,11 @@
       myInfo = {
          username: newUsername,
          color: myColor,
-         score: 0,
+         score: 1000,
          wager: 0,
          answer: ''
       }
+      $storeMyInfo = JSON.stringify(myInfo)
 
       channel.subscribe((status) => {
          if (status !== 'SUBSCRIBED') return null
@@ -255,7 +257,19 @@
       myInfo.answer = currentAnswer
       channel.send({type: 'broadcast',event: 
          'submitAnswer',
-         payload: { playerInfo: myInfo },
+         payload: { 
+            playerInfo: myInfo, 
+         },
+      })
+   }
+
+   function submitImage(event: any) {
+      channel.send({type: 'broadcast',event: 
+         'submitAnswer',
+         payload: { 
+            playerInfo: myInfo, 
+            image: event.detail.image
+         },
       })
    }
 
@@ -291,6 +305,10 @@
       }
    }
 
+   function keyPress(k) {
+      
+   }
+
    onDestroy(()=>{
       channel.send({type: 'broadcast', event: 
          'playerLeave',
@@ -301,8 +319,9 @@
    })
 </script>
 
-<!-- <Head {title}/> -->
-Room ID: {id}
+<svelte:head> 
+   <title>Playing Jeopardy</title>
+</svelte:head>
 
 {#if isLoggedIn}
    <div class="flex flex-row w-full my-8 justify-center items-center mx-auto gap-3">
@@ -346,6 +365,7 @@ Room ID: {id}
             </label>
          </div>
       {/if}
+
       {#if gameState.isAnswering && myInfo.wager}
          <div class="form-control">
             <label class="input-group">
@@ -366,7 +386,10 @@ Room ID: {id}
                </div>
             </label>
          </div>
+         <WhiteBoard on:submitImage={submitImage}/>
       {/if}
+      <!-- Whiteboard -->
+      
 
       {#if (!gameState.isAnswering && !gameState.isWagering && (!gameState.isDouble || answerQueue[0] !== myInfo.username))}
          {#if penaltyTime > 0}
@@ -379,7 +402,7 @@ Room ID: {id}
                class:btn-warning={isPushed} 
                class:btn-success={pushable && !isPushed && !gameState.isLocked} 
                on:click={pushButton}
-               on:keypress={()=>{}}
+               on:keypress={keyPress}
             >
                {statusText}
             </div>
@@ -422,5 +445,4 @@ Room ID: {id}
       <button class="btn btn-xl btn-success btn-" on:click={login}>Join</button>
    </div>
 {/if}
-
 

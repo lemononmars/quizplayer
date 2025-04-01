@@ -15,21 +15,18 @@
 	"devDependencies": {
 		"@sveltejs/adapter-vercel": "next",
 		"@sveltejs/kit": "next",
-		"@types/three": "^0.141.0",
 		"@typescript-eslint/eslint-plugin": "^5.27.0",
 		"@typescript-eslint/parser": "^5.27.0",
 		"autoprefixer": "^10.4.7",
 		"eslint": "^8.16.0",
 		"eslint-config-prettier": "^8.3.0",
 		"eslint-plugin-svelte3": "^4.0.0",
-		"mdsvex": "^0.10.6",
 		"postcss": "^8.4.14",
 		"prettier": "^2.6.2",
 		"prettier-plugin-svelte": "^2.7.0",
 		"svelte": "^3.44.0",
 		"svelte-check": "^2.7.1",
 		"svelte-feather-icons": "^4.0.0",
-		"svelte-intersection-observer": "^0.10.0",
 		"svelte-preprocess": "^4.10.7",
 		"tailwindcss": "^3.1.4",
 		"tslib": "^2.3.1",
@@ -37,13 +34,9 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@line/bot-sdk": "^7.5.2",
 		"@supabase/supabase-js": "^2.49.1",
 		"daisyui": "^2.17.0",
-		"discord.js": "^13.8.1",
 		"npm-check-updates": "^17.1.15",
-		"pusher": "^5.1.1-beta",
-		"three": "^0.142.0",
-		"threlte": "^3.13.0"
+		"simple-drawing-board": "^3.1.3"
 	}
 }

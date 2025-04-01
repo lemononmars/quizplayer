@@ -4,6 +4,7 @@ export interface PlayerInfo {
    score: number,
    wager: number,
    answer: string,
+   image?: URL
 }
 
 export interface GameState {
@@ -18,4 +19,18 @@ export interface RoomInfo {
    roomID: string,
    playerList: PlayerInfo[]
    isActive: boolean
+}
+
+interface Round {
+   categories: string[],
+   questions: string[][],
+   answers: string[][],
+   dailyDouble: number[],
+}
+
+export interface GameInfo {
+   title: string,
+   round1: Round,
+   round2: Round,
+   final: string[],
 }

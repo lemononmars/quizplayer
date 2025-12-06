@@ -11,6 +11,7 @@
 	import WhiteBoard from '$lib/components/WhiteBoardInput.svelte';
 
    export let id: string
+   const START_SCORE: number = 1000
    const channel = supabaseClient.channel('quiz-' + id)
    let myColor: number = 0
    const colors:string[] = ['primary', 'accent', 'info' , 'error']
@@ -186,7 +187,7 @@
       myInfo = {
          username: newUsername,
          color: myColor,
-         score: 1000,
+         score: START_SCORE,
          wager: 0,
          answer: ''
       }

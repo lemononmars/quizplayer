@@ -1,12 +1,4 @@
 <script lang=ts>
-   enum State {
-      'ENTER',
-      'HOST',
-      'PLAYER',
-      'AUDIENCE'
-   }
-
-   let state = State.ENTER
 </script>
 
 <svelte:head>

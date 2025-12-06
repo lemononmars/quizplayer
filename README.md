@@ -1,3 +1,3 @@
-# code breaker website
+# quiz player
 
-a simple website
+a website for quiz buttons using real-time supabase

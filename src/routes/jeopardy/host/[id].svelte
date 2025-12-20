@@ -26,13 +26,16 @@
    const scoreList: number[] = [200, 400, 600, 800, 1000]
    let score: number = 0
    $: totalScore = scoreList[score]*gameState.round
+   let wager: number = 0
 
    let playerList: PlayerInfo[] = []
    let currentDouble: boolean = false
 
    const MAX_ANSWER: number = 5000
+   const MAX_DOUBLE_ANSWER: number = 7000
    let answerTime: number = 0
    let answerTimer: any = ''
+   let answerTimeInterval: any = ''
 
    function getPlayer(username: string) {
       for(var p of playerList)
@@ -105,10 +108,39 @@
          }
       )
 
-      channel.subscribe((status) => {
-         if (status !== 'SUBSCRIBED') return null
+      channel.on('broadcast',{ event: 
+         'resendPlayerList' },
+         (payload) => {
+            if(playerList.length > 0) return
+            playerList = payload.payload.playerList
+         }
+      )
+
+      subscribe()
+
+      document.addEventListener('visibilitychange', () => {
+         if (!document.hidden) {
+            if (!channel) {
+               subscribe()
+            }
+         }
+      })
+      window.addEventListener('focus', () => {
+         if (!channel) {
+            subscribe()
+         }
       })
    })
+
+   function subscribe() {
+      channel.subscribe((status) => {
+         //if (status !== 'SUBSCRIBED') 
+         channel.send({
+            type: 'broadcast',
+            event: 'hostReconnect'
+         })
+      })
+   }
 
    function toggleLockButton(){
       gameState.isLocked = !gameState.isLocked
@@ -134,11 +166,11 @@
 
    function correctAnswer() {
       if(answerQueue.length == 0) return
-      playSound('correct')
+      //playSound('correct')
       const p = getPlayer(answerQueue[0])
-      const s = p.wager && p.wager > 0 ? p.wager: totalScore
+      const s = wager > 0 ? wager: totalScore
       
-      p.wager = 0
+      wager = 0
       gameState.isDouble = false
       updateScore(s, p.username)
       resetButton()
@@ -146,12 +178,11 @@
 
    function wrongAnswer() {
       if(answerQueue.length == 0) return
-      playSound('incorrect')
+      //playSound('incorrect')
       const q = answerQueue.shift() || ''
       const p = getPlayer(q)
-      const s = (p.wager && p.wager > 0) ? p.wager: totalScore
-      // always reset just in case
-      p.wager = 0
+      const s = wager > 0 ? wager: totalScore
+      wager = 0
       updateScore(-s, p.username)
       if(gameState.isDouble)
          resetButton()
@@ -161,6 +192,7 @@
 
    function updateScore(s: number, username: string) {
       clearTimeout(answerTimer)
+      clearInterval(answerTimeInterval)
 
       channel.send({
          type: 'broadcast',
@@ -185,15 +217,26 @@
       addLog(u + ' pushed')
       if(answerQueue.length > 0) return // remove if queueing is allowed
 
+      answerTime = wager>0?MAX_DOUBLE_ANSWER:MAX_ANSWER
+      answerTimeInterval = setInterval(()=> {
+         answerTime -= 100
+         if(answerTime <= 0) {
+            clearInterval(answerTimeInterval)
+            answerTime = 0
+         }
+      }, 100)
+
       answerTimer = setTimeout(()=>{
-         gameState.isLocked = true
+         gameState.isLocked = false
          gameState = gameState
+         clearInterval(answerTimeInterval)
+         answerTime = 0
          playSound('timesup')
          channel.send({type:'broadcast', event: 
             'toggleLockedButton',
             payload: {isLocked: true}
          })
-      }, MAX_ANSWER)
+      }, wager>0?MAX_DOUBLE_ANSWER:MAX_ANSWER)
       answerQueue = [...answerQueue, u]
 
       channel.send({type:'broadcast', event: 
@@ -204,7 +247,7 @@
 
    function updateRound(r: number) {
       gameState.round = r
-      if(r == 3) {
+      if(r == 999) { // change to 3 for proper full game
          gameState.isAnswering = true
          gameState.isWagering = true
       }
@@ -284,7 +327,7 @@
    <div class="btn-group">
       <button class="btn btn-outline" class:btn-active={gameState.round === 1} on:click={()=>updateRound(1)}>Round 1</button>
       <button class="btn btn-outline" class:btn-active={gameState.round === 2} on:click={()=>updateRound(2)}>Round 2</button>
-      <button class="btn btn-outline" class:btn-active={gameState.round === 3} on:click={()=>updateRound(3)}>Final</button>
+      <button class="btn btn-outline" class:btn-active={gameState.round === 3} on:click={()=>updateRound(3)}>Manual</button>
    </div>
 
    <div>
@@ -303,6 +346,12 @@
          </div>
 
       {:else}
+            <input 
+                  type="number"
+                  class="input input-bordered text-xl input-info w-40" 
+                  bind:value={wager}
+            /> 
+         {#if false}
          <div class="flex flex-col gap-2 items-center bg-slate-600 p-4">
             {#each playerList as p}
                {#if p.wager}
@@ -328,6 +377,7 @@
                {/if}
             {/each}
          </div>
+         {/if}
       {/if}
    </div>
 
@@ -360,9 +410,16 @@
             {#each answerQueue as a}
                {@const p = getPlayer(a)}
                <div class="btn btn-sm btn-{colors[p.color]}">
-                  {p.username} {p.wager? ': ' + p.wager:''}
+                   {p.username} {answerTime > 0? Math.floor(answerTime/1000) + '.' + answerTime/100%10 + ' s': "Time's up!"}
                </div> 
             {/each}
+
+            <div class="w-full bg-gray-700 rounded h-2 overflow-hidden">
+            <div 
+               class="bg-red-500 h-full transition-all duration-100"
+               style="width: {wager>0?(answerTime / MAX_DOUBLE_ANSWER) * 100:(answerTime / MAX_ANSWER)}%"
+            ></div>
+            </div>
          {/key}
 
       </div>
@@ -374,6 +431,9 @@
 <h3>Logs</h3>
 <div class="max-h-60 overflow-y-scroll text-left">
 <ul>
+
+   
+
    {#each [...logs].reverse() as l}
       <li transition:fade>{l}</li>
    {/each}

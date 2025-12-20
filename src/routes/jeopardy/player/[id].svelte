@@ -7,7 +7,7 @@
 
    
    import { supabaseClient } from '$lib/supabase'
-	import { username, storeGameState, storeMyInfo, storeRoomInfo } from '$lib/store';
+	import { username, storeGameState, storeMyInfo} from '$lib/store';
 	import WhiteBoard from '$lib/components/WhiteBoardInput.svelte';
 
    export let id: string
@@ -49,6 +49,8 @@
    const MAX_ANSWER: number = 5000
    let penaltyTime: number = 0
    let penaltyTimer: any = ''
+   let answerTime: number = 0
+   let answerTimeInterval: any = ''
 
    function getPlayer(username: string) {
       for(var p of playerList)
@@ -67,7 +69,7 @@
          else
             statusText = 'READY'
       else if(answerQueue[0] === myInfo.username)
-         statusText = 'Answer!'
+         statusText = '5 s'
       else 
          statusText = answerQueue[0]
    }
@@ -103,7 +105,9 @@
             getPlayer(username).score += parseInt(score)
             playerList = playerList
 
+            clearInterval(answerTimeInterval)
             if(username === myInfo.username) {
+               myInfo.score += parseInt(score)
                clearTimeout(penaltyTimer)
             }
 
@@ -118,10 +122,6 @@
                   pushable = true
                answerQueue.shift()
                answerQueue = answerQueue
-               if (score < 0)
-                  playSound('incorrect')
-               else
-                  playSound('timesup')
                updateStatusText()
             }
          }
@@ -131,7 +131,19 @@
          'updateQueue' },
          (payload) => {
             pushable = false
-            answerQueue = [...answerQueue, payload.payload.username]
+            const u = payload.payload.username
+            answerQueue = [...answerQueue, u]
+            if(u === myInfo.username) {
+               answerTime = MAX_ANSWER
+               answerTimeInterval = setInterval(()=> {
+                  answerTime -= 100
+                  statusText = answerTime > 0? Math.floor(answerTime/1000) + '.' + answerTime/100%10 + ' s': "Time's up!"
+                  if(answerTime <= 0) {
+                     clearInterval(answerTimeInterval)
+                     answerTime = 0
+                  }
+               }, 100)
+            }
             updateStatusText()
          }
       )
@@ -181,7 +193,36 @@
             addLog(leftUsername + ' left')
          }
       )
+
+      channel.on('broadcast',{ event: 
+         'hostReconnect' },
+         () => {
+            channel.send({type: 'broadcast',event: 
+               'resendPlayerList',
+               payload: { playerList },
+            })
+         }
+      )
+
+      document.addEventListener('visibilitychange', () => {
+         if (!document.hidden) {
+            if (!channel) {
+               subscribe()
+            }
+         }
+      })
+      window.addEventListener('focus', () => {
+         if (!channel) {
+            subscribe()
+         }
+      })
    })
+
+   function subscribe() {
+      channel.subscribe((status) => {
+         if (status !== 'SUBSCRIBED') return null // not sure what to do here
+      })
+   }
 
    function login() {
       myInfo = {
@@ -221,7 +262,7 @@
             penaltyTime = 0
          }, MAX_PENALTY)
          playSound('timesup')
-         return // 2.5 s penalty  
+         return // 250 ms penalty  
       }
       else {
          isPushed = true
@@ -306,8 +347,8 @@
       }
    }
 
-   function keyPress(k) {
-      
+   function keyPress(k: any) {
+      return
    }
 
    onDestroy(()=>{

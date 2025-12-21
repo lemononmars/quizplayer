@@ -5,13 +5,13 @@
    import {loadSounds, type soundType} from '$lib/sounds/'
    import {VolumeXIcon, Volume2Icon, PenToolIcon, XCircleIcon, CheckCircleIcon} from 'svelte-feather-icons'
 
-   
    import { supabaseClient } from '$lib/supabase'
-	import { username, storeGameState, storeMyInfo} from '$lib/store';
-	import WhiteBoard from '$lib/components/WhiteBoardInput.svelte';
+	import { storeGameState, storeMyInfo} from '$lib/store';
+   import CountDownBar from '$lib/components/CountDownBar.svelte';
+	//import WhiteBoard from '$lib/components/WhiteBoardInput.svelte';
 
    export let id: string
-   const START_SCORE: number = 1000
+   const START_SCORE: number = 0
    const channel = supabaseClient.channel('quiz-' + id)
    let myColor: number = 0
    const colors:string[] = ['primary', 'accent', 'info' , 'error']
@@ -27,7 +27,7 @@
    let gameState: GameState = $storeGameState!== '' ? JSON.parse($storeGameState): 
       {
          round: 1,
-         isLocked: false,
+         isLocked: true,
          isDouble: false,
          isWagering: false,
          isAnswering: false
@@ -44,9 +44,10 @@
    let soundOn: boolean = false 
    let sounds: any = []
    let statusText: string = 'READY'
-   let penaltyPeriod: boolean = false
    const MAX_PENALTY: number = 250 // 0.25 seconds
    const MAX_ANSWER: number = 5000
+   const MAX_DOUBLE_ANSWER: number = 7000
+   $: maxAnswerTime = gameState.round == 3 ? MAX_DOUBLE_ANSWER : MAX_ANSWER
    let penaltyTime: number = 0
    let penaltyTimer: any = ''
    let answerTime: number = 0
@@ -69,14 +70,13 @@
          else
             statusText = 'READY'
       else if(answerQueue[0] === myInfo.username)
-         statusText = '5 s'
+         statusText = 'ANSWER!'
       else 
          statusText = answerQueue[0]
    }
 
    let playerList: PlayerInfo[] = []
-   let newUsername: string = $username !== 'code breaker'? $username: ''
-   
+   let newUsername: string = myInfo.username
 
    onMount(async()=>{
       sounds = loadSounds()
@@ -105,10 +105,8 @@
             getPlayer(username).score += parseInt(score)
             playerList = playerList
 
-            clearInterval(answerTimeInterval)
             if(username === myInfo.username) {
-               myInfo.score += parseInt(score)
-               clearTimeout(penaltyTimer)
+               resetTimer()
             }
 
             if(gameState.isDouble || score > 0) {
@@ -134,13 +132,12 @@
             const u = payload.payload.username
             answerQueue = [...answerQueue, u]
             if(u === myInfo.username) {
-               answerTime = MAX_ANSWER
+               isPushed = true
+               answerTime = maxAnswerTime
                answerTimeInterval = setInterval(()=> {
                   answerTime -= 100
-                  statusText = answerTime > 0? Math.floor(answerTime/1000) + '.' + answerTime/100%10 + ' s': "Time's up!"
                   if(answerTime <= 0) {
-                     clearInterval(answerTimeInterval)
-                     answerTime = 0
+                     resetTimer()
                   }
                }, 100)
             }
@@ -191,6 +188,10 @@
             playerList = playerList.filter(p => p.username !== leftUsername)
             playerList = playerList
             addLog(leftUsername + ' left')
+
+            if(leftUsername === myInfo.username) {
+               isLoggedIn = false
+            }
          }
       )
 
@@ -219,8 +220,9 @@
    })
 
    function subscribe() {
+      if(channel.state === 'joined') return
       channel.subscribe((status) => {
-         if (status !== 'SUBSCRIBED') return null // not sure what to do here
+         if (status == 'SUBSCRIBED') return null // not sure what to do here
       })
    }
 
@@ -233,14 +235,10 @@
          answer: ''
       }
       $storeMyInfo = JSON.stringify(myInfo)
-
-      channel.subscribe((status) => {
-         if (status !== 'SUBSCRIBED') return null
-         
-         channel.send({type: 'broadcast',event: 
-            'playerJoin',
-            payload: { info: myInfo },
-         })
+      subscribe()
+      channel.send({type: 'broadcast',event: 
+         'playerJoin',
+         payload: { info: myInfo },
       })
 
       isLoggedIn = true
@@ -249,28 +247,18 @@
    }
 
    function pushButton(){
-      
       if(isPushed || !pushable) return 
 
       if(gameState.isLocked) {
-         penaltyPeriod = true
          penaltyTime = MAX_PENALTY
-         penaltyTimer = setInterval(()=>penaltyTime -= 10, 10)
-         setTimeout(()=>{
-            penaltyPeriod = false
-            clearInterval(penaltyTimer)
-            penaltyTime = 0
-         }, MAX_PENALTY)
+         penaltyTimer = setInterval(()=> {
+            penaltyTime -= 10
+            if(penaltyTime <= 0) {
+               resetTimer()
+            }
+         }, 10)
          playSound('timesup')
          return // 250 ms penalty  
-      }
-      else {
-         isPushed = true
-         setTimeout(()=>{
-            gameState.isLocked = true
-            gameState = gameState
-            playSound('timesup')
-         }, MAX_ANSWER)
       }
 
       playSound('ping')
@@ -326,9 +314,18 @@
       currentAnswer = ''
       myInfo.answer = ''
       answerQueue = []
+      resetTimer()
 
       updateStatusText()
    }
+
+   function resetTimer() {
+      penaltyTime = 0
+      clearInterval(penaltyTimer)
+      answerTime = 0
+      clearInterval(answerTimeInterval)
+   }
+
    function addLog(message: string) {
       const timestamp = new Date().toLocaleTimeString()
       logs = [...logs, timestamp + ' - ' + message]
@@ -369,7 +366,7 @@
    <div class="flex flex-row w-full my-8 justify-center items-center mx-auto gap-3">
       <div class="btn-group mx-2">
          <div class="btn btn-sm md:btn-md btn-{colors[myInfo.color]}">{myInfo.username}</div> 
-         <div class="btn btn-sm md:btn-md btn-outline">{myInfo.score}</div>
+         <!--div class="btn btn-sm md:btn-md btn-outline">{myInfo.score}</div-->
       </div>
       <button class="btn btn-sm btn-circle btn-outline" on:click={()=>soundOn = !soundOn}>
          {#if soundOn}
@@ -428,9 +425,8 @@
                </div>
             </label>
          </div>
-         <WhiteBoard on:submitImage={submitImage}/>
+         <!--WhiteBoard on:submitImage={submitImage}/-->
       {/if}
-      <!-- Whiteboard -->
       
 
       {#if (!gameState.isAnswering && !gameState.isWagering && (!gameState.isDouble || answerQueue[0] !== myInfo.username))}
@@ -448,6 +444,7 @@
             >
                {statusText}
             </div>
+            <CountDownBar bind:answerTime {maxAnswerTime}/>
          {/if}
       {/if}
    </div>
@@ -461,7 +458,7 @@
       {/each}
    </div>
 
-   <div class="max-h-60 overflow-y-scroll text-left">
+   <div class="max-h-60 overflow-y-scroll text-left m-4">
       <h3>Logs</h3>
       <ul>
          {#each [...logs].reverse() as l}

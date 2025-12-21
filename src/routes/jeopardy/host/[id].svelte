@@ -2,40 +2,43 @@
    import {onMount, onDestroy} from 'svelte'
    import {fade} from 'svelte/transition'
    import {type PlayerInfo, type GameState, type RoomInfo} from '$lib/interfaces/jeopardy'
-   import {LockIcon, UnlockIcon, CheckCircleIcon, XCircleIcon, Volume2Icon, VolumeXIcon, RefreshCwIcon} from 'svelte-feather-icons'
+   import {LockIcon, UnlockIcon, CheckCircleIcon, XCircleIcon, Volume2Icon, VolumeXIcon, RefreshCwIcon, CrosshairIcon, Trash2Icon} from 'svelte-feather-icons'
    import {loadSounds, type soundType} from '$lib/sounds'
 
    import { supabaseClient } from '$lib/supabase'
+	import CountDownBar from '$lib/components/CountDownBar.svelte';
 
    export let id: string
    const channel =  supabaseClient.channel('quiz-' + id)
 
    let sounds: any = {}
    let soundOn: boolean = true
+   let kicking: boolean = false
    const colors:string[] = ['primary', 'accent', 'info' , 'error']
    let logs: string[] = []
    let answerQueue: string[] = []
 
    let gameState: GameState = {
       round: 1,
-      isLocked: false,
+      isLocked: true,
       isDouble: false,
       isWagering: false,
       isAnswering: false
    }
    const scoreList: number[] = [200, 400, 600, 800, 1000]
    let score: number = 0
-   $: totalScore = scoreList[score]*gameState.round
+   $: currentScore = scoreList[score]*gameState.round
    let wager: number = 0
+   let setToScore: boolean = false
 
    let playerList: PlayerInfo[] = []
    let currentDouble: boolean = false
 
    const MAX_ANSWER: number = 5000
    const MAX_DOUBLE_ANSWER: number = 7000
+   $: maxAnswerTime = gameState.round == 3 ? MAX_DOUBLE_ANSWER : MAX_ANSWER
    let answerTime: number = 0
    let answerTimer: any = ''
-   let answerTimeInterval: any = ''
 
    function getPlayer(username: string) {
       for(var p of playerList)
@@ -133,8 +136,8 @@
    })
 
    function subscribe() {
+      if(channel.state === 'joined') return
       channel.subscribe((status) => {
-         //if (status !== 'SUBSCRIBED') 
          channel.send({
             type: 'broadcast',
             event: 'hostReconnect'
@@ -144,6 +147,11 @@
 
    function toggleLockButton(){
       gameState.isLocked = !gameState.isLocked
+      if(!gameState.isLocked) {
+         startTimer()
+      } else
+         resetAnswerTimer()
+
       channel.send({
          type: 'broadcast',
          event: 'toggleLockButton',
@@ -152,11 +160,12 @@
    }
 
    function resetButton(){
-      playSound('timesup')
       answerQueue = []
       gameState.isLocked = true // locked as default
       gameState.isDouble = false
       currentDouble = false
+
+      resetAnswerTimer()
       channel.send({
          type: 'broadcast',
          event: 'resetButton',
@@ -164,11 +173,16 @@
       })
    }
 
+   function resetAnswerTimer() {
+      clearInterval(answerTimer)
+      answerTime = 0
+   }
+
    function correctAnswer() {
       if(answerQueue.length == 0) return
       //playSound('correct')
       const p = getPlayer(answerQueue[0])
-      const s = wager > 0 ? wager: totalScore
+      const s = wager == 0 ? currentScore: setToScore ? wager - p.score : wager
       
       wager = 0
       gameState.isDouble = false
@@ -179,33 +193,42 @@
    function wrongAnswer() {
       if(answerQueue.length == 0) return
       //playSound('incorrect')
+      
+      resetAnswerTimer()
+
       const q = answerQueue.shift() || ''
       const p = getPlayer(q)
-      const s = wager > 0 ? wager: totalScore
+      const s = wager == 0 ? currentScore: setToScore ? wager - p.score : wager
       wager = 0
       updateScore(-s, p.username)
-      if(gameState.isDouble)
+      if(gameState.isDouble) {
          resetButton()
+      }
+      else {
+         toggleLockButton()
+      }
 
       answerQueue = answerQueue
    }
 
    function updateScore(s: number, username: string) {
-      clearTimeout(answerTimer)
-      clearInterval(answerTimeInterval)
-
-      channel.send({
-         type: 'broadcast',
-         event: 'updateScore',
-         payload: { score: s, username },
-      })
-      addLog((s>0? '✅': s<0? '❌': '') + username + ' gets ' + s + ' points')
+      addLog(
+         setToScore? 
+            username + ' score set to ' + wager
+            :(s>0? '✅': s<0? '❌': '') + username + ' gets ' + s + ' points'
+      )
 
       const p = getPlayer(username)
       p.score += s
       p.wager = 0
       p.answer = ''
       playerList = playerList
+
+      channel.send({
+         type: 'broadcast',
+         event: 'updateScore',
+         payload: { score: s, username },
+      })
 
       if(gameState.isDouble) {
          gameState.isDouble = false
@@ -216,27 +239,35 @@
    function updateQueue(u: string) {
       addLog(u + ' pushed')
       if(answerQueue.length > 0) return // remove if queueing is allowed
+      if(kicking) {
+         playerList = playerList.filter(p=>p.username != u)
+         addLog(u + ' was kicked')
+         channel.send({
+            type: 'broadcast',
+            event: 'playerLeave',
+            payload: {username: u},
+         })
+         kicking = false
+         return
+      }  
 
-      answerTime = wager>0?MAX_DOUBLE_ANSWER:MAX_ANSWER
-      answerTimeInterval = setInterval(()=> {
+      resetAnswerTimer()
+      gameState.isLocked = true
+      answerTime = maxAnswerTime
+      answerTimer = setInterval(()=> {
          answerTime -= 100
          if(answerTime <= 0) {
-            clearInterval(answerTimeInterval)
-            answerTime = 0
-         }
-      }, 100)
+            resetAnswerTimer()
 
-      answerTimer = setTimeout(()=>{
-         gameState.isLocked = false
-         gameState = gameState
-         clearInterval(answerTimeInterval)
-         answerTime = 0
-         playSound('timesup')
-         channel.send({type:'broadcast', event: 
+            gameState.isLocked = false
+            gameState = gameState
+            playSound('timesup')
+            channel.send({type:'broadcast', event: 
             'toggleLockedButton',
             payload: {isLocked: true}
          })
-      }, wager>0?MAX_DOUBLE_ANSWER:MAX_ANSWER)
+         }
+      }, 100)
       answerQueue = [...answerQueue, u]
 
       channel.send({type:'broadcast', event: 
@@ -266,6 +297,18 @@
       })
    }
 
+   function startTimer() {
+      resetAnswerTimer()
+      answerTime = maxAnswerTime
+      answerTimer = setInterval(()=> {
+         answerTime -= 100
+         if(answerTime <= 0) {
+            playSound('timesup')
+            resetButton()
+         }
+      }, 100)
+   }
+
    function addLog(message: string) {
       const timestamp = new Date().toLocaleTimeString()
       logs = [...logs, timestamp + ' - ' + message]
@@ -273,6 +316,7 @@
 
    function pass() {
       updateScore(0, answerQueue.shift() || '')
+      resetAnswerTimer()
    }
 
    function dailyDouble() {
@@ -338,19 +382,25 @@
             {/each}
          </div>
 
-         <div class="form-control">
+         <!-- <div class="form-control">
             <label class="label cursor-pointer w-36 m-auto">
                <span class="label-text" class:text-success={gameState.isDouble}>Double</span> 
                <input type="checkbox" class="toggle" bind:checked={currentDouble} on:click={dailyDouble}/>
             </label>
-         </div>
+         </div> -->
 
       {:else}
-            <input 
-                  type="number"
-                  class="input input-bordered text-xl input-info w-40" 
-                  bind:value={wager}
-            /> 
+         <div class="form-control h-20">
+            <label class="input-group align-center">
+               <input type="checkbox" class="toggle h-full" bind:checked={setToScore}/>
+               <span>{setToScore?"To":"+"}</span>
+               <input 
+                     type="number"
+                     class="input input-bordered text-xl input-info w-40" 
+                     bind:value={wager}
+               />
+            </label>
+         </div>
          {#if false}
          <div class="flex flex-col gap-2 items-center bg-slate-600 p-4">
             {#each playerList as p}
@@ -381,7 +431,11 @@
       {/if}
    </div>
 
-   <div class="flex flex-row gap-2 h-20 items-center bg-slate-800 w-full">
+   <div class="flex flex-row flex-wrap gap-2 h-20 items-center bg-slate-800 w-full">
+      <div class="flex flex-col justify-center gap-2 mx-2">
+         <input type="checkbox" class="checkbox checkbox-primary" bind:checked={kicking} />
+         <Trash2Icon size=20/>
+      </div>
       {#each playerList as p}
          <div class="btn-group mx-2">
             <div 
@@ -393,7 +447,8 @@
          </div>
       {/each}
    </div>
-   
+
+   <CountDownBar bind:answerTime {maxAnswerTime}/>
    {#if answerQueue.length > 0}
       <div class="flex flex-col m-auto items-center gap-y-2">
          <div class="btn-group">
@@ -406,34 +461,22 @@
             <button class="btn btn-outline btn-warning" on:click={pass}>Pass</button>
          </div>
 
-         {#key playerList}
+         {#key answerQueue}
             {#each answerQueue as a}
                {@const p = getPlayer(a)}
                <div class="btn btn-sm btn-{colors[p.color]}">
                    {p.username} {answerTime > 0? Math.floor(answerTime/1000) + '.' + answerTime/100%10 + ' s': "Time's up!"}
                </div> 
             {/each}
-
-            <div class="w-full bg-gray-700 rounded h-2 overflow-hidden">
-            <div 
-               class="bg-red-500 h-full transition-all duration-100"
-               style="width: {wager>0?(answerTime / MAX_DOUBLE_ANSWER) * 100:(answerTime / MAX_ANSWER)}%"
-            ></div>
-            </div>
          {/key}
-
       </div>
    {/if}
+   
 </div>
 
-
-
 <h3>Logs</h3>
-<div class="max-h-60 overflow-y-scroll text-left">
+<div class="max-h-60 overflow-y-scroll text-left m-4">
 <ul>
-
-   
-
    {#each [...logs].reverse() as l}
       <li transition:fade>{l}</li>
    {/each}
